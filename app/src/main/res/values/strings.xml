@@ -1,0 +1,4 @@
+<resources>
+    <string name="app_name">SpamJAM</string>
+    <string name="title_activity_main_messages">MainMessages</string>
+</resources>
