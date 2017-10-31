@@ -108,11 +108,20 @@ public class Classifier {
 
         fillTable(Spam, Ham);
 
+        Set<String> keys_ = spamWords.keySet();
+        for (String key : keys_) {
+            Log.d("Probab Spam", key + " : " + spamWords.get(key));
+        }
+        keys_ = hamWords.keySet();
+        for (String key : keys_) {
+            Log.d("Probab Ham", key + " : " + hamWords.get(key));
+        }
+
         HashMap<Integer, Integer> spam_or_ham = new HashMap<>();
 
         Set<Integer> keys = dataSet.keySet();
         for (int key : keys) {
-            Log.e("Red", key + " : " + dataSet.get(key));
+            //Log.e("Red", key + " : " + dataSet.get(key));
             String message = dataSet.get(key).toLowerCase();
             spam_or_ham.put(key, classifier(message));
         }

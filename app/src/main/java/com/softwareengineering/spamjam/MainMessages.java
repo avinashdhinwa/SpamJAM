@@ -24,9 +24,7 @@ import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 import java.util.Scanner;
 import java.util.Set;
 
@@ -56,7 +54,7 @@ public class MainMessages extends AppCompatActivity {
         if (ContextCompat.checkSelfPermission(getBaseContext(), "android.permission.READ_SMS") != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(MainMessages.this, new String[]{"android.permission.READ_SMS"}, REQUEST_CODE_ASK_PERMISSIONS);
         }
-        
+
         read_classified_messages();
 
         readMessages();
@@ -82,11 +80,17 @@ public class MainMessages extends AppCompatActivity {
         }
         messages_classified.putAll(Classifier.classify(spam_messages_training, ham_messages_training, messages_dataSet));
 
-        Log.e("messages", messages_classified.toString());
+        Log.e("messages", spam_messages_training.toString());
+        for (int key : keys){
+            if(messages_classified.get(key) == Message.SPAM) {
+                Log.e("messages", "Spam : " + key);
+            }
+        }
     }
 
     private void read_classified_messages() {
         File file = new File(this.getFilesDir(), "messages_classes.txt");
+
         id_to_messages = new HashMap<>();
         try {
             Scanner sc = new Scanner(new FileInputStream(file));
@@ -94,12 +98,19 @@ public class MainMessages extends AppCompatActivity {
             while (sc.hasNext()) {
                 int id = sc.nextInt();
                 id_to_messages.put(id, new Message(id, sc.nextInt(), sc.nextInt()));
+//                Log.e("Reading : ", id_to_messages.get(id).to_string_for_file());
+                if(id_to_messages.get(id).hard_coded == Message.YES){
+                    Log.e("Error", "got a hardcoded message --> " + id);
+                }
             }
 
         } catch (FileNotFoundException e) {
             Log.e("Error", "Never classified yet");
             e.printStackTrace();
         }
+
+        id_to_messages.clear();
+        Log.d("read from file", id_to_messages.toString());
     }
 
     void readMessages() {
@@ -119,7 +130,8 @@ public class MainMessages extends AppCompatActivity {
                 //String msgData += cursor.getColumnName(13) + ":" + cursor.getString(13);
                 String msgData = cursor.getString(13);
 
-                messages_list.add(cursor.getInt(0) + " : " + msgData);
+                messages_list.add(msgData);
+                //messages_list.add(cursor.getInt(0) + " : " + msgData);
                 id_list.add(cursor.getInt(0));
 
                 // use msgData
@@ -211,14 +223,10 @@ public class MainMessages extends AppCompatActivity {
             file.createNewFile();
             OutputStreamWriter myOutWriter = new OutputStreamWriter(new FileOutputStream(file));
 
-            Iterator it = id_to_messages.keySet().iterator();
-
-            while (it.hasNext()) {
-                Map.Entry pair = (Map.Entry) it.next();
-                myOutWriter.append(pair.getValue().toString());//.to_string_for_file());
-                Log.e("Error", pair.getValue().toString());
-                //Log.e("Error", pair.getKey() + " = " + pair.getValue());
-                it.remove(); // avoids a ConcurrentModificationException
+            Set<Integer> keys = id_to_messages.keySet();
+            for (int key : keys) {
+                //Log.e("Writing : ", id_to_messages.get(key).to_string_for_file());
+                myOutWriter.append(id_to_messages.get(key).to_string_for_file());
             }
 
             myOutWriter.close();
