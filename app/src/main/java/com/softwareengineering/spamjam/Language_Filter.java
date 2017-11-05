@@ -24,7 +24,7 @@ public class Language_Filter {
         return pred;
     }
 
-   private String predictor(String Msg){
+    String predictor(String Msg){
         int sum=0;
         for(int i=0;i<Msg.length();i++){
             if((int)Msg.charAt(i)>=2309 && (int)Msg.charAt(i)<2431){
