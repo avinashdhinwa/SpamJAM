@@ -33,6 +33,7 @@ public class MainMessages extends AppCompatActivity {
     private static final int REQUEST_CODE_ASK_PERMISSIONS = 123;
     private static final int HARDCODE_AS_SPAM = 111;
     private static final int HARDCODE_AS_HAM = 121;
+    private static final int UNMARK = 131;
 
     static HashMap<Integer, Message> id_to_messages = new HashMap<>();
 
@@ -55,7 +56,7 @@ public class MainMessages extends AppCompatActivity {
             ActivityCompat.requestPermissions(MainMessages.this, new String[]{"android.permission.READ_SMS"}, REQUEST_CODE_ASK_PERMISSIONS);
         }
 
-        read_classified_messages();
+        //read_classified_messages();
 
         readMessages();
 
@@ -190,6 +191,18 @@ public class MainMessages extends AppCompatActivity {
                     classify();
                 }
                 break;
+            case UNMARK:
+                if(spam_messages_training.containsKey(id_list.get(info.position))) {
+                    spam_messages_training.remove(id_list.get(info.position));
+                }
+                if(ham_messages_training.containsKey(id_list.get(info.position))) {
+                    ham_messages_training.remove(id_list.get(info.position));
+                }
+                if(!messages_dataSet.containsKey(id_list.get(info.position))) {
+                    messages_dataSet.put(id_list.get(info.position), id_to_messages.get(id_list.get(info.position)).message);
+                }
+                classify();
+                break;
             //default:
             //    return super.onContextItemSelected(item);
         }
@@ -206,9 +219,10 @@ public class MainMessages extends AppCompatActivity {
             AdapterView.AdapterContextMenuInfo info = (AdapterView.AdapterContextMenuInfo) menuInfo;
 
             menu.setHeaderTitle("Options");
-            String[] menuItems = {"Mark as Spam", "Mark as Non-Spam"};
+            String[] menuItems = {"Mark as Spam", "Mark as Non-Spam", "Unmark"};
             menu.add(Menu.NONE, HARDCODE_AS_SPAM, 0, menuItems[0]);
             menu.add(Menu.NONE, HARDCODE_AS_HAM, 0, menuItems[1]);
+            menu.add(Menu.NONE, UNMARK, 0, menuItems[2]);
         }
     }
 

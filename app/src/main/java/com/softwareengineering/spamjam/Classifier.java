@@ -121,9 +121,11 @@ public class Classifier {
 
         Set<Integer> keys = dataSet.keySet();
         for (int key : keys) {
-            //Log.e("Red", key + " : " + dataSet.get(key));
             String message = dataSet.get(key).toLowerCase();
             spam_or_ham.put(key, classifier(message));
+            if(spam_or_ham.get(key) == Message.SPAM) {
+                Log.e("Red", key + " : " + dataSet.get(key));
+            }
         }
 
         return spam_or_ham;
