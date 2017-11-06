@@ -1,5 +1,7 @@
 package com.softwareengineering.spamjam;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Map;
@@ -7,9 +9,16 @@ import java.util.Map;
 public class Language_Filter {
 
     //LinkedList<String> list = new LinkedList<>();
-   private HashMap<String , Integer> map = new HashMap<>();
 
-    LinkedList ReadMsg(LinkedList<String> list){
+    public static ArrayList<String> languages =  new ArrayList<>(Arrays.asList("English",
+                                                                                    "Hindi",
+                                                                                    "Punjabi",
+                                                                                    "Gujarati",
+                                                                                    "Malayalam"));
+
+    private HashMap<String , Integer> map = new HashMap<>();
+
+    private LinkedList ReadMsg(LinkedList<String> list){
        LinkedList<String> pred = new LinkedList<>();
 
         for(int i=0;i<list.size();i++) {
@@ -18,13 +27,13 @@ public class Language_Filter {
             map.put("English",0);
             map.put("Gujarati",0);
             map.put("Punjabi",0);
-            map.put("Malyalam",0);
+            map.put("Malayalam",0);
         }
 
         return pred;
     }
 
-   private String predictor(String Msg){
+    private String predictor(String Msg){
         int sum=0;
         for(int i=0;i<Msg.length();i++){
             if((int)Msg.charAt(i)>=2309 && (int)Msg.charAt(i)<2431){
@@ -57,6 +66,14 @@ public class Language_Filter {
         }
 
         return lang;
+    }
+
+    public Language_Filter(){
+        languages.add("English");
+        languages.add("Hindi");
+        languages.add("Punjabi");
+        languages.add("Gujarati");
+        languages.add("Malayalam");
     }
 
 }

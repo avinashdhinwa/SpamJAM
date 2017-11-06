@@ -1,5 +1,6 @@
 package com.softwareengineering.spamjam;
 
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.net.Uri;
@@ -7,6 +8,7 @@ import android.os.Bundle;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.ContextMenu;
 import android.view.Menu;
@@ -49,8 +51,9 @@ public class MainMessages extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main_messages);
-        //Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
-        //setSupportActionBar(toolbar);
+
+        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
 
         if (ContextCompat.checkSelfPermission(getBaseContext(), "android.permission.READ_SMS") != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(MainMessages.this, new String[]{"android.permission.READ_SMS"}, REQUEST_CODE_ASK_PERMISSIONS);
@@ -224,6 +227,20 @@ public class MainMessages extends AppCompatActivity {
             menu.add(Menu.NONE, HARDCODE_AS_HAM, 0, menuItems[1]);
             menu.add(Menu.NONE, UNMARK, 0, menuItems[2]);
         }
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+
+        switch (item.getItemId()){
+            case R.id.toolbar_settings:{
+                Intent intent = new Intent(this, Settings.class);
+                startActivity(intent);
+            }
+            break;
+            default: return super.onOptionsItemSelected(item);
+        }
+        return true;
     }
 
     @Override
