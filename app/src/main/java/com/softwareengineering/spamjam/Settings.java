@@ -14,6 +14,6 @@ public class Settings extends AppCompatActivity {
     }
 
     void save_all_languages(){
-        
+
     }
 }
