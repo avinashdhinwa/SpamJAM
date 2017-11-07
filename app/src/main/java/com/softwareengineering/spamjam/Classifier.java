@@ -104,6 +104,22 @@ public class Classifier {
 
     }
 
+//    public void classify_by_language(){
+//        ArrayList<String> languages = Language_Filter.languages;
+//        HashMap<String, Integer> languages_selected = new HashMap<>();
+//
+//        SQLiteDatabase mydatabase = openOrCreateDatabase("SpamJAM",MODE_PRIVATE,null);
+//        mydatabase.execSQL("CREATE TABLE IF NOT EXISTS languages(Language VARCHAR);");
+//        Cursor resultSet = mydatabase.rawQuery("SELECT * FROM languages;", null);
+//
+//        resultSet.moveToFirst();
+//        while(resultSet.isAfterLast() == false){
+//            String lang = resultSet.getString(0);
+//            languages_selected.put(lang, 1);
+//            resultSet.moveToNext();
+//        }
+//    }
+
     public static HashMap<Integer, Integer> classify(HashMap<Integer, String> Spam, HashMap<Integer, String> Ham, HashMap<Integer, String> dataSet){
 
         fillTable(Spam, Ham);

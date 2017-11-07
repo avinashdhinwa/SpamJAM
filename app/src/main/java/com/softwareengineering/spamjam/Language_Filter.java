@@ -16,9 +16,9 @@ public class Language_Filter {
                                                                                     "Gujarati",
                                                                                     "Malayalam"));
 
-    private HashMap<String , Integer> map = new HashMap<>();
+    static HashMap<String , Integer> map = new HashMap<>();
 
-    private LinkedList ReadMsg(LinkedList<String> list){
+    public static LinkedList ReadMsg(LinkedList<String> list){
        LinkedList<String> pred = new LinkedList<>();
 
         for(int i=0;i<list.size();i++) {
@@ -33,13 +33,8 @@ public class Language_Filter {
         return pred;
     }
 
-   public static String predictor(String Msg){
+    public static String predictor(String Msg){
         int sum=0;
-        map.put("Hindi",0);
-        map.put("English",0);
-        map.put("Gujarati",0);
-        map.put("Punjabi",0);
-        map.put("Malyalam",0);
         for(int i=0;i<Msg.length();i++){
             if((int)Msg.charAt(i)>=2309 && (int)Msg.charAt(i)<2431){
                 map.put("Hindi", map.get("Hindi") + 1);
@@ -59,7 +54,7 @@ public class Language_Filter {
         }
 
         int max=0;
-        String lang="English";
+        String lang="";
         for (Map.Entry<String, Integer> entry : map.entrySet())
         {
             int x = entry.getValue();
@@ -71,6 +66,14 @@ public class Language_Filter {
         }
 
         return lang;
+    }
+
+    public Language_Filter(){
+        languages.add("English");
+        languages.add("Hindi");
+        languages.add("Punjabi");
+        languages.add("Gujarati");
+        languages.add("Malayalam");
     }
 
 }
