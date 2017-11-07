@@ -99,7 +99,7 @@ public class MainMessages extends AppCompatActivity {
                 messages_dataSet.put(key, id_to_messages.get(key).message);
             }
         }
-        messages_classified.putAll(Classifier.classify(spam_messages_training, ham_messages_training, messages_dataSet));
+        messages_classified.putAll(NBC_Classifier.classify(spam_messages_training, ham_messages_training, messages_dataSet));
 
 //        Log.e("messages", spam_messages_training.toString());
 

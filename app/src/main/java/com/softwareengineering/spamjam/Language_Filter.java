@@ -16,9 +16,9 @@ public class Language_Filter {
                                                                                     "Gujarati",
                                                                                     "Malayalam"));
 
-    private HashMap<String , Integer> map = new HashMap<>();
+    static HashMap<String , Integer> map = new HashMap<>();
 
-    private LinkedList ReadMsg(LinkedList<String> list){
+    public static LinkedList ReadMsg(LinkedList<String> list){
        LinkedList<String> pred = new LinkedList<>();
 
         for(int i=0;i<list.size();i++) {
@@ -33,7 +33,7 @@ public class Language_Filter {
         return pred;
     }
 
-    private String predictor(String Msg){
+    public static String predictor(String Msg){
         int sum=0;
         for(int i=0;i<Msg.length();i++){
             if((int)Msg.charAt(i)>=2309 && (int)Msg.charAt(i)<2431){
