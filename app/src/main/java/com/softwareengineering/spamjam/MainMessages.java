@@ -99,7 +99,12 @@ public class MainMessages extends AppCompatActivity {
                 messages_dataSet.put(key, id_to_messages.get(key).message);
             }
         }
-        messages_classified.putAll(NBC_Classifier.classify(spam_messages_training, ham_messages_training, messages_dataSet));
+        try {
+            messages_classified.putAll(NBC_Classifier.classify(spam_messages_training, ham_messages_training, messages_dataSet));
+        } catch (IOException e) {
+            Log.e("Error", "File not found");
+            e.printStackTrace();
+        }
 
 //        Log.e("messages", spam_messages_training.toString());
 

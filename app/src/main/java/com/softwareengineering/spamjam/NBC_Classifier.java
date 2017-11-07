@@ -2,6 +2,12 @@ package com.softwareengineering.spamjam;
 
 import android.util.Log;
 
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.Set;
@@ -17,11 +23,65 @@ public class NBC_Classifier {
     static int spamCount = 0;
     static int hamCount = 0;
 
-    public static void fillTable(HashMap<Integer, String> Spam, HashMap<Integer, String> Ham)
+    public static void fillTable(HashMap<Integer, String> Spam, HashMap<Integer, String> Ham)  throws IOException
     {
         String message;
         spamWords.clear();
         hamWords.clear();
+
+        final String path = "res/raw/dataset.txt";
+        File f = new File(path);
+        InputStream inputStream = new FileInputStream(f);
+        BufferedReader br = new BufferedReader(new InputStreamReader(inputStream));
+
+        String line;
+        while((line = br.readLine()) != null){
+            line = line.toLowerCase();
+            String [] spliter = line.split("\\t");
+
+            if(spliter[0].equals("inbox"))
+            {
+                String result = MessageCleaning.messageCleaning(spliter[1]);
+
+                String [] msgWords = result.split("\\s+");
+
+
+                hamCount += msgWords.length;
+
+                for(String s : msgWords)
+                {
+                    if(!hamWords.containsKey(s))
+                    {
+                        hamWords.put(s, 1.0);
+                    }
+                    else
+                    {
+                        hamWords.put(s, hamWords.get(s)+1);
+                    }
+                }
+
+            }
+            else
+            {
+                String result = MessageCleaning.messageCleaning(spliter[1]);
+                String [] msgWords = result.split("\\s");
+                spamCount += msgWords.length;
+
+                for(String s : msgWords)
+                {
+                    if(!spamWords.containsKey(s))
+                    {
+                        spamWords.put(s, 1.0);
+                    }
+                    else
+                    {
+                        spamWords.put(s, spamWords.get(s)+1);
+                    }
+                }
+
+            }
+        }
+
         Set<Integer> keys = Ham.keySet();
         for (int key : keys){
             message = Ham.get(key).toLowerCase();
@@ -113,7 +173,7 @@ public class NBC_Classifier {
 
     }
 
-    public static HashMap<Integer, Integer> classify(HashMap<Integer, String> Spam, HashMap<Integer, String> Ham, HashMap<Integer, String> dataSet){
+    public static HashMap<Integer, Integer> classify(HashMap<Integer, String> Spam, HashMap<Integer, String> Ham, HashMap<Integer, String> dataSet) throws IOException{
 
         fillTable(Spam, Ham);
 
