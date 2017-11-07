@@ -25,17 +25,20 @@ public class NBC_Classifier {
         Set<Integer> keys = Ham.keySet();
         for (int key : keys){
             message = Ham.get(key).toLowerCase();
-            message = MessageCleaning.messageCleaning(message);
-            String [] msgWords = message.split("\\s+");
+            String lang = Language_Filter.predictor(message);
 
-            hamCount += msgWords.length;
+            if(lang.equals("English")) {
+                message = MessageCleaning.messageCleaning(message);
+                String[] msgWords = message.split("\\s+");
 
-            for(String s : msgWords){
-                if(!hamWords.containsKey(s)){
-                    hamWords.put(s, 1.0);
-                }
-                else{
-                    hamWords.put(s, hamWords.get(s)+1);
+                hamCount += msgWords.length;
+
+                for (String s : msgWords) {
+                    if (!hamWords.containsKey(s)) {
+                        hamWords.put(s, 1.0);
+                    } else {
+                        hamWords.put(s, hamWords.get(s) + 1);
+                    }
                 }
             }
         }
@@ -43,17 +46,20 @@ public class NBC_Classifier {
         keys = Spam.keySet();
         for (int key : keys){
             message = Spam.get(key).toLowerCase();
-            message = MessageCleaning.messageCleaning(message);
-            String [] msgWords = message.split("\\s+");
+            String lang = Language_Filter.predictor(message);
 
-            spamCount += msgWords.length;
+            if(lang.equals("English")) {
+                message = MessageCleaning.messageCleaning(message);
+                String[] msgWords = message.split("\\s+");
 
-            for(String s : msgWords){
-                if(!spamWords.containsKey(s)){
-                    spamWords.put(s, 1.0);
-                }
-                else{
-                    spamWords.put(s, spamWords.get(s)+1);
+                spamCount += msgWords.length;
+
+                for (String s : msgWords) {
+                    if (!spamWords.containsKey(s)) {
+                        spamWords.put(s, 1.0);
+                    } else {
+                        spamWords.put(s, spamWords.get(s) + 1);
+                    }
                 }
             }
         }
@@ -73,38 +79,37 @@ public class NBC_Classifier {
 
     public static int classifier(String message)
     {
-        message = MessageCleaning.messageCleaning(message);
-        String [] msgWords = message.split("\\s+");
-        double hamProb = 1;
-        double spamProb = 1;
+        String lang = Language_Filter.predictor(message);
+        if(lang.equals("English")) {
+            message = MessageCleaning.messageCleaning(message);
+            String[] msgWords = message.split("\\s+");
+            double hamProb = hamCount * 1.0 / (hamCount + spamCount);
+            double spamProb = spamCount * 1.0 / (spamCount + hamCount);
 
-        for(String s : msgWords)
-        {
-            if(spamWords.containsKey(s))
-            {
-                spamProb *= spamWords.get(s);
+            for (String s : msgWords) {
+                if (spamWords.containsKey(s)) {
+                    spamProb *= spamWords.get(s);
+                } else {
+                    spamProb *= (1.0 / spamCount);
+                }
+
+
+                if (hamWords.containsKey(s)) {
+                    hamProb *= hamWords.get(s);
+                } else {
+                    hamProb *= (1.0 / hamCount);
+                }
+
             }
+
+            if (hamProb >= spamProb)
+                return Message.NOT_SPAM;
             else
-            {
-                spamProb *= (1.0/spamCount);
-            }
-
-
-            if(hamWords.containsKey(s))
-            {
-                hamProb *= hamWords.get(s);
-            }
-            else
-            {
-                hamProb *= (1.0/hamCount);
-            }
-
+                return Message.SPAM;
         }
-
-        if(hamProb >= spamProb)
-            return Message.NOT_SPAM;
-        else
+        else{
             return Message.SPAM;
+        }
 
     }
 

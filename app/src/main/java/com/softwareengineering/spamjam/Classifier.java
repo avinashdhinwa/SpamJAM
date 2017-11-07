@@ -71,8 +71,8 @@ public class Classifier {
     public static int classifier(String message)
     {
         String [] msgWords = message.split("\\s+");
-        double hamProb = 1;
-        double spamProb = 1;
+        double hamProb = hamCount*1.0/(hamCount+spamCount);
+        double spamProb = spamCount*1.0/(spamCount+hamCount);
 
         for(String s : msgWords)
         {
