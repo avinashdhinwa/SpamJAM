@@ -19,11 +19,16 @@
             android:theme="@style/AppTheme.NoActionBar">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".Settings"></activity>
+        <activity android:name=".Settings"
+            android:theme="@style/AppTheme.NoActionBar">
+            android:parentActivityName=".MainMessages"
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value=".MainMessages"/>
+        </activity>
     </application>
 
 </manifest>

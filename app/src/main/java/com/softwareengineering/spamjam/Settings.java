@@ -3,7 +3,9 @@ package com.softwareengineering.spamjam;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
+import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.Toolbar;
 import android.widget.CheckBox;
 import android.widget.LinearLayout;
 
@@ -12,12 +14,18 @@ import java.util.HashMap;
 
 public class Settings extends AppCompatActivity {
 
-    SQLiteDatabase mydatabase = openOrCreateDatabase("SpamJAM",MODE_PRIVATE,null);
+    SQLiteDatabase mydatabase;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_settings);
+
+        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
+
+        ActionBar actionBar = getSupportActionBar();
+        actionBar.setDisplayHomeAsUpEnabled(true);
 
         load_languages();
     }
@@ -28,6 +36,7 @@ public class Settings extends AppCompatActivity {
 
         LinearLayout parentLayout = (LinearLayout) findViewById(R.id.linear_layout_with_language_choice);
 
+        mydatabase = openOrCreateDatabase("SpamJAM",MODE_PRIVATE,null);
         mydatabase.execSQL("CREATE TABLE IF NOT EXISTS languages(Language VARCHAR);");
         Cursor resultSet = mydatabase.rawQuery("SELECT * FROM languages;", null);
 
@@ -50,8 +59,19 @@ public class Settings extends AppCompatActivity {
 
     @Override
     protected void onDestroy() {
+
+        LinearLayout linearLayout = (LinearLayout) findViewById(R.id.linear_layout_with_language_choice);
+        for(int i = 0; i <  linearLayout.getChildCount(); i++) {
+            CheckBox checkBox = (CheckBox) linearLayout.getChildAt(i);
+            String lang = (String) checkBox.getText();
+            if(checkBox.isChecked()) {
+                mydatabase.execSQL("INSERT INTO languages VALUES (\"" + lang + "\");");
+            }
+            else{
+                mydatabase.execSQL("DELETE FROM languages WHERE Language=\"" + lang + "\";");
+            }
+        }
+
         super.onDestroy();
-
-
     }
 }

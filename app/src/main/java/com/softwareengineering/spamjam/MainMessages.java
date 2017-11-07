@@ -37,6 +37,14 @@ public class MainMessages extends AppCompatActivity {
     private static final int HARDCODE_AS_HAM = 121;
     private static final int UNMARK = 131;
 
+    private static int SHOWING_SPAM_OR_HAM = Message.NOT_SPAM;
+    private static final int TOOLBAR_SETTINGS = 201;
+    private static final int TOOLBAR_SPAM = 202;
+    private static final int TOOLBAR_NON_SPAM = 203;
+
+    ListView listView;
+    ArrayAdapter<String> arrayAdapter;
+
     static HashMap<Integer, Message> id_to_messages = new HashMap<>();
 
     static HashMap<Integer, String> spam_messages_training = new HashMap<>();
@@ -46,6 +54,11 @@ public class MainMessages extends AppCompatActivity {
     static HashMap<Integer, Integer> messages_classified = new HashMap<>();
 
     static List<Integer> id_list = new ArrayList<>();
+    static List<Integer> id_list_spam = new ArrayList<>();
+    static List<Integer> id_list_non_spam = new ArrayList<>();
+
+    static List<String> spam_messages_list = new ArrayList<>();
+    static List<String> non_spam_messages_list = new ArrayList<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -58,6 +71,10 @@ public class MainMessages extends AppCompatActivity {
         if (ContextCompat.checkSelfPermission(getBaseContext(), "android.permission.READ_SMS") != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(MainMessages.this, new String[]{"android.permission.READ_SMS"}, REQUEST_CODE_ASK_PERMISSIONS);
         }
+
+        listView = (ListView) findViewById(R.id.all_messages);
+        listView.setAdapter(arrayAdapter);
+        registerForContextMenu(listView);
 
         //read_classified_messages();
 
@@ -84,12 +101,27 @@ public class MainMessages extends AppCompatActivity {
         }
         messages_classified.putAll(Classifier.classify(spam_messages_training, ham_messages_training, messages_dataSet));
 
-        Log.e("messages", spam_messages_training.toString());
+//        Log.e("messages", spam_messages_training.toString());
+
+        Log.e("filling layout", "Generating data for layout");
+
+        id_list_non_spam.clear();
+        id_list_spam.clear();
+        spam_messages_list.clear();
+        non_spam_messages_list.clear();
         for (int key : keys){
             if(messages_classified.get(key) == Message.SPAM) {
+                id_list_spam.add(key);
+                spam_messages_list.add(id_to_messages.get(key).message);
                 Log.e("messages", "Spam : " + key);
             }
+            else if(messages_classified.get(key) == Message.NOT_SPAM) {
+                id_list_non_spam.add(key);
+                non_spam_messages_list.add(id_to_messages.get(key).message);
+            }
         }
+
+        fill_the_layout_with_messages();
     }
 
     private void read_classified_messages() {
@@ -152,12 +184,12 @@ public class MainMessages extends AppCompatActivity {
             }
         }
 
-        ArrayAdapter<String> arrayAdapter = new MyAdapter(this, android.R.layout.simple_list_item_1, messages_list.toArray());
+        if(spam_messages_list.isEmpty() && non_spam_messages_list.isEmpty()){
+            classify();
+        }
 
-        ListView listView = (ListView) findViewById(R.id.all_messages);
+        arrayAdapter = new MyAdapter(this, android.R.layout.simple_list_item_1, non_spam_messages_list.toArray());
         listView.setAdapter(arrayAdapter);
-        registerForContextMenu(listView);
-
     }
 
     @Override
@@ -165,52 +197,58 @@ public class MainMessages extends AppCompatActivity {
         AdapterView.AdapterContextMenuInfo info = (AdapterView.AdapterContextMenuInfo) item.getMenuInfo();
         Log.e("Error", "removing item pos=" + info.position);
 
+        int id_from_pos = 0;
+        if(SHOWING_SPAM_OR_HAM == Message.SPAM){
+            id_from_pos = id_list_spam.get(info.position);
+        }
+        else if(SHOWING_SPAM_OR_HAM == Message.NOT_SPAM){
+            id_from_pos = id_list_non_spam.get(info.position);
+        }
+
         switch (item.getItemId()) {
             case HARDCODE_AS_HAM:
-                if (!ham_messages_training.containsKey(id_list.get(info.position))) {
-                    id_to_messages.get(id_list.get(info.position)).hard_coded = Message.YES;
-                    id_to_messages.get(id_list.get(info.position)).spam = Message.NOT_SPAM;
-                    ham_messages_training.put(id_list.get(info.position), id_to_messages.get(id_list.get(info.position)).message);
-                    if (spam_messages_training.containsKey(id_list.get(info.position))) {
-                        spam_messages_training.remove(id_list.get(info.position));
+                if (!ham_messages_training.containsKey(id_from_pos)) {
+                    id_to_messages.get(id_from_pos).hard_coded = Message.YES;
+                    id_to_messages.get(id_from_pos).spam = Message.NOT_SPAM;
+                    ham_messages_training.put(id_from_pos, id_to_messages.get(id_from_pos).message);
+                    if (spam_messages_training.containsKey(id_from_pos)) {
+                        spam_messages_training.remove(id_from_pos);
                     }
-                    if (messages_dataSet.containsKey(id_list.get(info.position))) {
-                        messages_dataSet.remove(id_list.get(info.position));
+                    if (messages_dataSet.containsKey(id_from_pos)) {
+                        messages_dataSet.remove(id_from_pos);
                     }
                     classify();
                 }
                 break;
             case HARDCODE_AS_SPAM:
-                if (!spam_messages_training.containsKey(id_list.get(info.position))) {
-                    id_to_messages.get(id_list.get(info.position)).hard_coded = Message.YES;
-                    id_to_messages.get(id_list.get(info.position)).spam = Message.SPAM;
-                    spam_messages_training.put(id_list.get(info.position), id_to_messages.get(id_list.get(info.position)).message);
-                    if (ham_messages_training.containsKey(id_list.get(info.position))) {
-                        ham_messages_training.remove(id_list.get(info.position));
+                if (!spam_messages_training.containsKey(id_from_pos)) {
+                    id_to_messages.get(id_from_pos).hard_coded = Message.YES;
+                    id_to_messages.get(id_from_pos).spam = Message.SPAM;
+                    spam_messages_training.put(id_from_pos, id_to_messages.get(id_from_pos).message);
+                    if (ham_messages_training.containsKey(id_from_pos)) {
+                        ham_messages_training.remove(id_from_pos);
                     }
-                    if (messages_dataSet.containsKey(id_list.get(info.position))) {
-                        messages_dataSet.remove(id_list.get(info.position));
+                    if (messages_dataSet.containsKey(id_from_pos)) {
+                        messages_dataSet.remove(id_from_pos);
                     }
                     classify();
                 }
                 break;
             case UNMARK:
-                if(spam_messages_training.containsKey(id_list.get(info.position))) {
-                    spam_messages_training.remove(id_list.get(info.position));
+                if(spam_messages_training.containsKey(id_from_pos)) {
+                    spam_messages_training.remove(id_from_pos);
                 }
-                if(ham_messages_training.containsKey(id_list.get(info.position))) {
-                    ham_messages_training.remove(id_list.get(info.position));
+                if(ham_messages_training.containsKey(id_from_pos)) {
+                    ham_messages_training.remove(id_from_pos);
                 }
-                if(!messages_dataSet.containsKey(id_list.get(info.position))) {
-                    messages_dataSet.put(id_list.get(info.position), id_to_messages.get(id_list.get(info.position)).message);
+                if(!messages_dataSet.containsKey(id_from_pos)) {
+                    messages_dataSet.put(id_from_pos, id_to_messages.get(id_from_pos).message);
                 }
                 classify();
                 break;
-            //default:
-            //    return super.onContextItemSelected(item);
         }
 
-        return true;
+        return super.onContextItemSelected(item);
     }
 
     @Override
@@ -229,17 +267,66 @@ public class MainMessages extends AppCompatActivity {
         }
     }
 
+    private void fill_the_layout_with_messages() {
+
+        switch(SHOWING_SPAM_OR_HAM){
+            case Message.NOT_SPAM:{
+                arrayAdapter = new MyAdapter(this, android.R.layout.simple_list_item_1, non_spam_messages_list.toArray());
+                listView.setAdapter(arrayAdapter);
+                Log.e("filling layout", "Displaying NOT SPAM");
+            }
+            break;
+            case Message.SPAM:{
+                arrayAdapter = new MyAdapter(this, android.R.layout.simple_list_item_1, spam_messages_list.toArray());
+                listView.setAdapter(arrayAdapter);
+                Log.e("filling layout", "Displaying SPAM");
+            }
+            break;
+        }
+    }
+
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
 
         switch (item.getItemId()){
-            case R.id.toolbar_settings:{
+            case TOOLBAR_SETTINGS:{
                 Intent intent = new Intent(this, Settings.class);
                 startActivity(intent);
             }
             break;
-            default: return super.onOptionsItemSelected(item);
+            case TOOLBAR_NON_SPAM:{
+                SHOWING_SPAM_OR_HAM = Message.NOT_SPAM;
+                invalidateOptionsMenu();
+                fill_the_layout_with_messages();
+            }
+            break;
+            case TOOLBAR_SPAM:{
+                SHOWING_SPAM_OR_HAM = Message.SPAM;
+                invalidateOptionsMenu();
+                fill_the_layout_with_messages();
+            }
+            break;
         }
+        return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+
+        if(SHOWING_SPAM_OR_HAM == Message.SPAM) {
+            menu.add(0, TOOLBAR_NON_SPAM, 0, "Inbox");
+            menu.getItem(0).setIcon(R.drawable.ic_inbox_black_24dp);
+        }
+        else{
+            menu.add(0, TOOLBAR_SPAM, 0, "Spam");
+            menu.getItem(0).setIcon(R.drawable.ic_report_black_24dp);
+        }
+
+        menu.add(0, TOOLBAR_SETTINGS, 1, "Settings");
+        menu.getItem(1).setIcon(R.drawable.ic_settings_black_24dp);
+
+//        MenuInflater inflater = getMenuInflater();
+//        inflater.inflate(R.menu.toolbar_menu, menu);;
         return true;
     }
 
