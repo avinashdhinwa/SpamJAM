@@ -85,6 +85,7 @@ public class MainMessages extends AppCompatActivity {
     private void classify() {
 
         Set<Integer> keys = id_to_messages.keySet();
+        int count_debug = 0;
         for (int key : keys) {
             if(id_to_messages.get(key).hard_coded == Message.YES){
                 if(id_to_messages.get(key).spam == Message.SPAM){
@@ -97,6 +98,7 @@ public class MainMessages extends AppCompatActivity {
             }
             else{
                 messages_dataSet.put(key, id_to_messages.get(key).message);
+                count_debug++;
             }
         }
         try {
@@ -105,6 +107,8 @@ public class MainMessages extends AppCompatActivity {
             Log.e("Error", "File not found");
             e.printStackTrace();
         }
+
+        Log.e("lines", "count = " + count_debug);
 
 //        Log.e("messages", spam_messages_training.toString());
 
