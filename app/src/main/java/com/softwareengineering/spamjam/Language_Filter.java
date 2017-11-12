@@ -35,6 +35,11 @@ public class Language_Filter {
 
     public static String predictor(String Msg){
         int sum=0;
+        map.put("Hindi",0);
+        map.put("English",0);
+        map.put("Gujarati",0);
+        map.put("Punjabi",0);
+        map.put("Malayalam",0);
         for(int i=0;i<Msg.length();i++){
             if((int)Msg.charAt(i)>=2309 && (int)Msg.charAt(i)<2431){
                 map.put("Hindi", map.get("Hindi") + 1);
