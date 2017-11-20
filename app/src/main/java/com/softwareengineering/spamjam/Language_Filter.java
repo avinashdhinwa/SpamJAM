@@ -41,18 +41,19 @@ public class Language_Filter {
         map.put("Punjabi",0);
         map.put("Malayalam",0);
         for(int i=0;i<Msg.length();i++){
+
             if((int)Msg.charAt(i)>=2309 && (int)Msg.charAt(i)<2431){
                 map.put("Hindi", map.get("Hindi") + 1);
-            }
+            };
             if((int)Msg.charAt(i)>=2688 && (int)Msg.charAt(i)<2815){
                 map.put("Gujarati", map.get("Gujarati") + 1);
-            }
+            };
             if((int)Msg.charAt(i)>=2560 && (int)Msg.charAt(i)<2687){
                 map.put("Punjabi", map.get("Punjabi") + 1);
-            }
-            if((int)Msg.charAt(i)>=2432 && (int)Msg.charAt(i)<2559){
+            };
+            if((int)Msg.charAt(i)>=0 && (int)Msg.charAt(i)<127){
                 map.put("English", map.get("English") + 1);
-            }
+            };
             if((int)Msg.charAt(i)>=3328 && (int)Msg.charAt(i)<3455){
                 map.put("Malyalam", map.get("Malyalam") + 1);
             }

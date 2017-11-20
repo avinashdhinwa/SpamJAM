@@ -18,14 +18,20 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.FileWriter;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Hashtable;
 import java.util.List;
 import java.util.Scanner;
 import java.util.Set;
@@ -61,7 +67,7 @@ public class MainMessages extends AppCompatActivity {
     static List<String> non_spam_messages_list = new ArrayList<>();
 
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
+    protected void onCreate(Bundle savedInstanceState){
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main_messages);
 
@@ -76,11 +82,15 @@ public class MainMessages extends AppCompatActivity {
         listView.setAdapter(arrayAdapter);
         registerForContextMenu(listView);
 
-        //read_classified_messages();
+        read_classified_messages();
 
         readMessages();
 
+
     }
+
+
+
 
     private void classify() {
 
@@ -102,7 +112,8 @@ public class MainMessages extends AppCompatActivity {
             }
         }
         try {
-            messages_classified.putAll(NBC_Classifier.classify(spam_messages_training, ham_messages_training, messages_dataSet));
+           NBC_Classifier obj = new NBC_Classifier(getApplicationContext());
+            messages_classified.putAll(obj.classify(spam_messages_training,ham_messages_training,messages_dataSet));
         } catch (IOException e) {
             Log.e("Error", "File not found");
             e.printStackTrace();
@@ -134,6 +145,7 @@ public class MainMessages extends AppCompatActivity {
     }
 
     private void read_classified_messages() {
+
         File file = new File(this.getFilesDir(), "messages_classes.txt");
 
         id_to_messages = new HashMap<>();
@@ -164,17 +176,32 @@ public class MainMessages extends AppCompatActivity {
         Cursor cursor = getContentResolver().query(Uri.parse(INBOX), null, null, null, null);
         List<String> messages_list = new ArrayList<>();
 
+        int message_body_index = 0;
+        if (cursor.moveToFirst()) { // must check the result to prevent exception
+            for (int idx = 0; idx < cursor.getColumnCount(); idx++) {
+                if(cursor.getColumnName(idx).equals("body")){
+                    message_body_index = idx;
+                    break;
+                }
+            }
+        }
+
         if (cursor.moveToFirst()) { // must check the result to prevent exception
             do {
-                /*String msgData = "";
-                for(int idx=0;idx<cursor.getColumnCount();idx++)
+//                String msgData = "";
+//                for(int idx=0;idx<cursor.getColumnCount();idx++)
+//                {
+//                    msgData += idx + " " + cursor.getColumnName(idx) + ":" + cursor.getString(idx) + "\n";
+//                }
+
+//                String msgData += cursor.getColumnName(message_body_index) + ":" + cursor.getString(message_body_index);
+                String msgData = cursor.getString(message_body_index);
+/*                String lang = Language_Filter.predictor(msgData);
+//                Log.e("HindiMessage",lang);
+                if(lang.equals("Hindi"))
                 {
-                    msgData += " " + cursor.getColumnName(idx) + ":" + cursor.getString(idx);
+                    Log.e("HindiMessage",msgData);
                 }*/
-
-                //String msgData += cursor.getColumnName(13) + ":" + cursor.getString(13);
-                String msgData = cursor.getString(13);
-
                 messages_list.add(msgData);
                 //messages_list.add(cursor.getInt(0) + " : " + msgData);
                 id_list.add(cursor.getInt(0));
@@ -184,6 +211,7 @@ public class MainMessages extends AppCompatActivity {
         } else {
             Log.e("Error", "no messages");
         }
+
 
         for (int i = 0; i < messages_list.size(); i++) {
             if (id_to_messages.containsKey(id_list.get(i))) {
@@ -343,7 +371,7 @@ public class MainMessages extends AppCompatActivity {
     protected void onDestroy() {
         super.onDestroy();
 
-        Log.e("Error", "writing to file started");
+        Log.e("Writing", "writing to file started");
         File file = new File(this.getFilesDir(), "messages_classes.txt");
 
         try {
@@ -352,7 +380,7 @@ public class MainMessages extends AppCompatActivity {
 
             Set<Integer> keys = id_to_messages.keySet();
             for (int key : keys) {
-                //Log.e("Writing : ", id_to_messages.get(key).to_string_for_file());
+                Log.e("Writing : ", id_to_messages.get(key).to_string_for_file());
                 myOutWriter.append(id_to_messages.get(key).to_string_for_file());
             }
 

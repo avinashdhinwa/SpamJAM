@@ -487,9 +487,10 @@ public class MessageCleaning {
                 "whither", "who", "whoever", "whole", "whom", "whose", "why", "will", "willing", "wish", "with", "within", "without", "wonder", "would", "would",
                 "x", "y", "yes", "yet", "you", "your", "yours", "yourself", "yourselves", "z", "zero", "-", "_", "+", ".", "&", "|"};
 
+       // String [] s1 = {"a","an","the","of","on","i","you","we","up","upom"};
+
         return new HashSet<String>(Arrays.asList(stopWords));
     }
-
 
 
     public static String wordCleaning(String input)
@@ -503,8 +504,14 @@ public class MessageCleaning {
         Matcher matcher = pattern.matcher(input);
 
 
-        if(input.endsWith("?")||input.endsWith(".")||input.endsWith("!")||input.endsWith(":")||input.endsWith(",")){
+        if(input.endsWith("?")||input.endsWith(".")||input.endsWith("!")||input.endsWith(":")||input.endsWith(",")||
+                input.endsWith("'")||input.endsWith(")")){
             input = input.substring(0, input.length()-1);
+        }
+
+        if(input.startsWith("#")||input.startsWith("(")||input.startsWith(")")||input.startsWith("+")||input.startsWith(":")||
+                input.startsWith("?")||input.startsWith("@")||input.startsWith("~")){
+            input = input.substring(1, input.length());
         }
 
         if(input.startsWith("http://")||input.startsWith("https://")||input.startsWith("www.")){
@@ -518,13 +525,15 @@ public class MessageCleaning {
             int f1 = 0;
             int f2 = 0;
             int f3 = 0;
-
             for(int i = 0;i < input.length();i++){
                 if((input.charAt(i) >= '0' && input.charAt(i) <= '9')){
                     f1 = 1;
                 }
                 else if((input.charAt(i)>='a' && input.charAt(i) <= 'z')||input.charAt(i)=='*'||input.charAt(i)=='#'
-                        || input.charAt(i)== '-'||input.charAt(i)=='.'||input.charAt(i)==','){
+                        || input.charAt(i)== '-'||input.charAt(i)=='.'||input.charAt(i)==','||input.charAt(i)==')'||
+                        input.charAt(i)=='('||input.charAt(i)==':'||input.charAt(i)=='%'||input.charAt(i)=='+'||
+                        input.charAt(i)=='-'||input.charAt(i)=='_'||input.charAt(i)=='['||input.charAt(i)==']'||
+                        input.charAt(i)=='{'||input.charAt(i)=='}'||input.charAt(i)=='@'||input.charAt(i)=='?'){
                     f2 = 1;
                 }
                 else{
@@ -547,6 +556,69 @@ public class MessageCleaning {
         return result;
     }
 
+    public static String newWordCleaning(String message){
+        String result = "";
+
+        String previous = "";
+        String pPrevious = "";
+        HashSet<String> stopWords = stopWordsSet();
+
+        int letter = 0;
+        int number = 0;
+        int dialer = 0;
+        for(int i =0;i < message.length();i++){
+            if(message.charAt(i)>='a' && message.charAt(i) <= 'z'){
+                previous += message.charAt(i);
+                letter = 1;
+            }
+            else if(message.charAt(i)>='0' && message.charAt(i) <= '9'){
+                previous += message.charAt(i);
+                number = 1;
+            }
+            else if(message.charAt(i)=='.' || message.charAt(i)=='#'||message.charAt(i)=='*')
+            {
+                previous += message.charAt(i);
+                dialer = 1;
+            }
+            else{
+                if(previous.length() > 1 && !stopWords.contains(previous)){
+                    if(letter==1 && number == 0 && dialer==0){
+                        result += previous+" ";
+                        pPrevious = previous;
+                    }
+                    else if(letter==1 && number == 1 && dialer==0 && !pPrevious.equals("alphanumeric")){
+                        result += "alphanumeric ";
+                        pPrevious = "alphanumeric";
+                    }
+                    else if(letter == 0 && number == 1 && dialer == 0 && !pPrevious.equals("digit")){
+                        result += "digit ";
+                        pPrevious = "digit";
+
+                    }
+                    else if(letter == 0 && number == 1 && dialer == 1 && !pPrevious.equals("dialer")){
+                        result += "dialer ";
+                        pPrevious = "dialer";
+
+                    }
+                    else{
+                        result += "typer ";
+                        pPrevious = "typer";
+                    }
+                }
+                letter = dialer = number = 0;
+                previous = "";
+
+
+            }
+
+        }
+
+
+        return result.trim();
+    }
+
+
+
     // to clean the message
     public static String messageCleaning(String message)
     {
@@ -560,12 +632,14 @@ public class MessageCleaning {
         {
             if(!stopSet.contains(spliter[i].trim())){
                 String cleanWord = wordCleaning(spliter[i]);
-                result += cleanWord+" ";
+                if(cleanWord.length() > 2){
+                    result += cleanWord+" ";
+                }
             }
         }
 
         //System.out.println("result = "+result);
-        result = changeInBaseForm(result.toLowerCase());
+        //result = changeInBaseForm(result.toLowerCase());
 
         return result.trim();
     }
