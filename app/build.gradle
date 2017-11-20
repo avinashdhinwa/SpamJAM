@@ -4,6 +4,7 @@ android {
     compileSdkVersion 25
     buildToolsVersion '26.0.2'
     defaultConfig {
+        android.defaultConfig.vectorDrawables.useSupportLibrary = true
         applicationId "com.softwareengineering.spamjam"
         minSdkVersion 16
         targetSdkVersion 25

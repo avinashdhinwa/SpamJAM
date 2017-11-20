@@ -3,7 +3,6 @@
     package="com.softwareengineering.spamjam">
 
     <uses-permission android:name="android.permission.READ_SMS" />
-
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
 
     <application
@@ -22,12 +21,19 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".Settings"
+        <activity
+            android:name=".Settings"
             android:theme="@style/AppTheme.NoActionBar">
             android:parentActivityName=".MainMessages"
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
-                android:value=".MainMessages"/>
+                android:value=".MainMessages" />
+        </activity>
+        <activity android:name=".MainActivity">
+            <!--<intent-filter>-->
+                <!--<action android:name="android.intent.action.MAIN" />-->
+                <!--<category android:name="android.intent.category.LAUNCHER" />-->
+            <!--</intent-filter>-->
         </activity>
     </application>
 

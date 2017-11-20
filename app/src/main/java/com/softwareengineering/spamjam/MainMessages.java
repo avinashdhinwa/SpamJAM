@@ -25,6 +25,8 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Scanner;
@@ -57,9 +59,6 @@ public class MainMessages extends AppCompatActivity {
     static List<Integer> id_list_spam = new ArrayList<>();
     static List<Integer> id_list_non_spam = new ArrayList<>();
 
-    static List<String> spam_messages_list = new ArrayList<>();
-    static List<String> non_spam_messages_list = new ArrayList<>();
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -85,20 +84,19 @@ public class MainMessages extends AppCompatActivity {
     private void classify() {
 
         Set<Integer> keys = id_to_messages.keySet();
-        int count_debug = 0;
+
         for (int key : keys) {
             if(id_to_messages.get(key).hard_coded == Message.YES){
                 if(id_to_messages.get(key).spam == Message.SPAM){
-                    spam_messages_training.put(key, id_to_messages.get(key).message);
+                    spam_messages_training.put(key, id_to_messages.get(key).body);
                 }
                 else{
-                    ham_messages_training.put(key, id_to_messages.get(key).message);
+                    ham_messages_training.put(key, id_to_messages.get(key).body);
                 }
                 messages_classified.put(key, id_to_messages.get(key).spam);
             }
             else{
-                messages_dataSet.put(key, id_to_messages.get(key).message);
-                count_debug++;
+                messages_dataSet.put(key, id_to_messages.get(key).body);
             }
         }
         try {
@@ -108,27 +106,19 @@ public class MainMessages extends AppCompatActivity {
             e.printStackTrace();
         }
 
-        Log.e("lines", "count = " + count_debug);
-
-//        Log.e("messages", spam_messages_training.toString());
-
-        Log.e("filling layout", "Generating data for layout");
-
         id_list_non_spam.clear();
         id_list_spam.clear();
-        spam_messages_list.clear();
-        non_spam_messages_list.clear();
         for (int key : keys){
             if(messages_classified.get(key) == Message.SPAM) {
                 id_list_spam.add(key);
-                spam_messages_list.add(id_to_messages.get(key).message);
-                Log.e("messages", "Spam : " + key);
             }
             else if(messages_classified.get(key) == Message.NOT_SPAM) {
                 id_list_non_spam.add(key);
-                non_spam_messages_list.add(id_to_messages.get(key).message);
             }
         }
+
+        Collections.sort(id_list_non_spam, Collections.<Integer>reverseOrder());
+        Collections.sort(id_list_spam, Collections.<Integer>reverseOrder());
 
         fill_the_layout_with_messages();
     }
@@ -145,7 +135,13 @@ public class MainMessages extends AppCompatActivity {
                 id_to_messages.put(id, new Message(id, sc.nextInt(), sc.nextInt()));
 //                Log.e("Reading : ", id_to_messages.get(id).to_string_for_file());
                 if(id_to_messages.get(id).hard_coded == Message.YES){
-                    Log.e("Error", "got a hardcoded message --> " + id);
+                    if(id_to_messages.get(id).spam == Message.SPAM){
+                        id_list_spam.add(id);
+                    }
+                    else{
+                        id_list_non_spam.add(id);
+                    }
+                    Log.e("Yeah", "got a hardcoded message --> " + id);
                 }
             }
 
@@ -162,42 +158,56 @@ public class MainMessages extends AppCompatActivity {
         String INBOX = "content://sms/inbox";
 
         Cursor cursor = getContentResolver().query(Uri.parse(INBOX), null, null, null, null);
-        List<String> messages_list = new ArrayList<>();
+
+        int flag = 0;
 
         if (cursor.moveToFirst()) { // must check the result to prevent exception
+
+            int BODY = cursor.getColumnIndex("body");
+            int ID = cursor.getColumnIndex("_id");
+            int PERSON = cursor.getColumnIndex("person");
+            int ADDRESS = cursor.getColumnIndex("address");
+            int DATE = cursor.getColumnIndex("date");
+
+            Calendar calendar = Calendar.getInstance();
+
             do {
                 /*String msgData = "";
                 for(int idx=0;idx<cursor.getColumnCount();idx++)
                 {
-                    msgData += " " + cursor.getColumnName(idx) + ":" + cursor.getString(idx);
+                    msgData += cursor.getColumnName(idx) + ":" + cursor.getString(idx) + "\n";
                 }*/
 
-                //String msgData += cursor.getColumnName(13) + ":" + cursor.getString(13);
-                String msgData = cursor.getString(13);
+                String body = cursor.getString(BODY);
+                int id = cursor.getInt(ID);
+                String person = cursor.getString(PERSON);
+                calendar.setTimeInMillis(cursor.getLong(DATE));
+                String date = String.format("%02d", calendar.get(Calendar.HOUR_OF_DAY)) + ":" +
+                                String.format("%02d", calendar.get(Calendar.MINUTE)) + " " +
+                                String.format("%02d", calendar.get(Calendar.DATE)) + "-" +
+                                String.format("%02d", calendar.get(Calendar.MONTH)) + "-" +
+                                calendar.get(Calendar.YEAR);
+                String address = cursor.getString(ADDRESS);
 
-                messages_list.add(msgData);
-                //messages_list.add(cursor.getInt(0) + " : " + msgData);
-                id_list.add(cursor.getInt(0));
+                id_list.add(id);
 
-                // use msgData
+                if (id_to_messages.containsKey(id)) {
+                    id_to_messages.get(id).set_message(body, person, address, date);
+                } else {
+                    flag = 1;
+                    id_to_messages.put(id, new Message(id, body, person, address, date));
+                }
+                
             } while (cursor.moveToNext());
         } else {
             Log.e("Error", "no messages");
         }
 
-        for (int i = 0; i < messages_list.size(); i++) {
-            if (id_to_messages.containsKey(id_list.get(i))) {
-                id_to_messages.get(id_list.get(i)).set_message(messages_list.get(i));
-            } else {
-                id_to_messages.put(id_list.get(i), new Message(messages_list.get(i), id_list.get(i)));
-            }
-        }
-
-        if(spam_messages_list.isEmpty() && non_spam_messages_list.isEmpty()){
+        if(flag != 0){
             classify();
         }
 
-        arrayAdapter = new MyAdapter(this, android.R.layout.simple_list_item_1, non_spam_messages_list.toArray());
+        arrayAdapter = new MyAdapter(this, android.R.layout.simple_list_item_1, id_list_non_spam, id_to_messages);
         listView.setAdapter(arrayAdapter);
     }
 
@@ -219,7 +229,7 @@ public class MainMessages extends AppCompatActivity {
                 if (!ham_messages_training.containsKey(id_from_pos)) {
                     id_to_messages.get(id_from_pos).hard_coded = Message.YES;
                     id_to_messages.get(id_from_pos).spam = Message.NOT_SPAM;
-                    ham_messages_training.put(id_from_pos, id_to_messages.get(id_from_pos).message);
+                    ham_messages_training.put(id_from_pos, id_to_messages.get(id_from_pos).body);
                     if (spam_messages_training.containsKey(id_from_pos)) {
                         spam_messages_training.remove(id_from_pos);
                     }
@@ -233,7 +243,7 @@ public class MainMessages extends AppCompatActivity {
                 if (!spam_messages_training.containsKey(id_from_pos)) {
                     id_to_messages.get(id_from_pos).hard_coded = Message.YES;
                     id_to_messages.get(id_from_pos).spam = Message.SPAM;
-                    spam_messages_training.put(id_from_pos, id_to_messages.get(id_from_pos).message);
+                    spam_messages_training.put(id_from_pos, id_to_messages.get(id_from_pos).body);
                     if (ham_messages_training.containsKey(id_from_pos)) {
                         ham_messages_training.remove(id_from_pos);
                     }
@@ -251,7 +261,7 @@ public class MainMessages extends AppCompatActivity {
                     ham_messages_training.remove(id_from_pos);
                 }
                 if(!messages_dataSet.containsKey(id_from_pos)) {
-                    messages_dataSet.put(id_from_pos, id_to_messages.get(id_from_pos).message);
+                    messages_dataSet.put(id_from_pos, id_to_messages.get(id_from_pos).body);
                 }
                 classify();
                 break;
@@ -280,13 +290,13 @@ public class MainMessages extends AppCompatActivity {
 
         switch(SHOWING_SPAM_OR_HAM){
             case Message.NOT_SPAM:{
-                arrayAdapter = new MyAdapter(this, android.R.layout.simple_list_item_1, non_spam_messages_list.toArray());
+                arrayAdapter = new MyAdapter(this, android.R.layout.simple_list_item_1, id_list_non_spam, id_to_messages);
                 listView.setAdapter(arrayAdapter);
                 Log.e("filling layout", "Displaying NOT SPAM");
             }
             break;
             case Message.SPAM:{
-                arrayAdapter = new MyAdapter(this, android.R.layout.simple_list_item_1, spam_messages_list.toArray());
+                arrayAdapter = new MyAdapter(this, android.R.layout.simple_list_item_1, id_list_spam, id_to_messages);
                 listView.setAdapter(arrayAdapter);
                 Log.e("filling layout", "Displaying SPAM");
             }

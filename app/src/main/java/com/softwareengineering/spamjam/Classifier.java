@@ -1,10 +1,12 @@
 package com.softwareengineering.spamjam;
 
-import android.util.Log;
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
 
-import java.util.HashMap;
-import java.util.Hashtable;
-import java.util.Set;
+import java.util.ArrayList;
+import java.util.List;
+
+import static android.database.sqlite.SQLiteDatabase.openOrCreateDatabase;
 
 /**
  * Created by Unknown User on 30-10-2017.
@@ -12,139 +14,90 @@ import java.util.Set;
 
 public class Classifier {
 
-    static Hashtable<String,Double> spamWords = new Hashtable<>();
-    static Hashtable<String,Double> hamWords = new Hashtable<>();
-    static int spamCount = 0;
-    static int hamCount = 0;
+    List<String> acceptedLanguages;
+    List<String> blackList;
+    List<String> whiteList;
 
-    public static void fillTable(HashMap<Integer, String> Spam, HashMap<Integer, String> Ham)
-    {
-        String message;
+    public Classifier(){
 
-        Set<Integer> keys = Ham.keySet();
-        for (int key : keys){
-            message = Ham.get(key).toLowerCase();
-            String [] msgWords = message.split("\\s+");
+        load_languages();
+        load_blacklist();
+        load_whitelist();
 
-            hamCount += msgWords.length;
-
-            for(String s : msgWords){
-                if(!hamWords.containsKey(s)){
-                    hamWords.put(s, 1.0);
-                }
-                else{
-                    hamWords.put(s, hamWords.get(s)+1);
-                }
-            }
-        }
-
-        keys = Spam.keySet();
-        for (int key : keys){
-            message = Spam.get(key).toLowerCase();
-            String [] msgWords = message.split("\\s+");
-
-            spamCount += msgWords.length;
-
-            for(String s : msgWords){
-                if(!spamWords.containsKey(s)){
-                    spamWords.put(s, 1.0);
-                }
-                else{
-                    spamWords.put(s, spamWords.get(s)+1);
-                }
-            }
-        }
-
-        Set<String> keySet = hamWords.keySet();
-        for(String s: keySet)
-        {
-            hamWords.put(s, hamWords.get(s)/hamCount);
-        }
-
-        keySet = spamWords.keySet();
-        for(String s: keySet)
-        {
-            spamWords.put(s, spamWords.get(s)/spamCount);
-        }
     }
 
-    public static int classifier(String message)
-    {
-        String [] msgWords = message.split("\\s+");
-        double hamProb = hamCount*1.0/(hamCount+spamCount);
-        double spamProb = spamCount*1.0/(spamCount+hamCount);
+    public int classify(String message, String sender){
 
-        for(String s : msgWords)
-        {
-            if(spamWords.containsKey(s))
-            {
-                spamProb *= spamWords.get(s);
-            }
-            else
-            {
-                spamProb *= (1.0/spamCount);
-            }
+        String lang = Language_Filter.predictor(message);
 
-
-            if(hamWords.containsKey(s))
-            {
-                hamProb *= hamWords.get(s);
-            }
-            else
-            {
-                hamProb *= (1.0/hamCount);
-            }
-
-        }
-
-        if(hamProb >= spamProb)
-            return Message.NOT_SPAM;
-        else
+        if(blackList.contains(sender)){
             return Message.SPAM;
+        }
+        else if(whiteList.contains(sender)){
+            return Message.NOT_SPAM;
+        }
+        else if(!acceptedLanguages.contains(lang)){
+            return Message.SPAM;
+        }
 
+        return Message.NOT_SPAM;
     }
 
-//    public void classify_by_language(){
-//        ArrayList<String> languages = Language_Filter.languages;
-//        HashMap<String, Integer> languages_selected = new HashMap<>();
-//
-//        SQLiteDatabase mydatabase = openOrCreateDatabase("SpamJAM",MODE_PRIVATE,null);
-//        mydatabase.execSQL("CREATE TABLE IF NOT EXISTS languages(Language VARCHAR);");
-//        Cursor resultSet = mydatabase.rawQuery("SELECT * FROM languages;", null);
-//
-//        resultSet.moveToFirst();
-//        while(resultSet.isAfterLast() == false){
-//            String lang = resultSet.getString(0);
-//            languages_selected.put(lang, 1);
-//            resultSet.moveToNext();
-//        }
-//    }
+    public void classify_all(){
 
-    public static HashMap<Integer, Integer> classify(HashMap<Integer, String> Spam, HashMap<Integer, String> Ham, HashMap<Integer, String> dataSet){
+        String message = "hi";
+        String sender = "aashirwad";
+        classify(message, sender);
+    }
 
-        fillTable(Spam, Ham);
+    private void load_blacklist() {
+        blackList = new ArrayList<>();
 
-        Set<String> keys_ = spamWords.keySet();
-        for (String key : keys_) {
-            Log.d("Probab Spam", key + " : " + spamWords.get(key));
+        SQLiteDatabase mydatabase = openOrCreateDatabase("SpamJAM", null,null);
+        mydatabase.execSQL("CREATE TABLE IF NOT EXISTS blacklisted(Address VARCHAR);");
+        Cursor resultSet = mydatabase.rawQuery("SELECT * FROM blacklisted;", null);
+
+        resultSet.moveToFirst();
+        while(resultSet.isAfterLast() == false){
+            String address = resultSet.getString(0);
+            blackList.add(address);
+            resultSet.moveToNext();
         }
-        keys_ = hamWords.keySet();
-        for (String key : keys_) {
-            Log.d("Probab Ham", key + " : " + hamWords.get(key));
+    }
+
+    private void load_whitelist() {
+        whiteList = new ArrayList<>();
+
+        SQLiteDatabase mydatabase = openOrCreateDatabase("SpamJAM", null,null);
+        mydatabase.execSQL("CREATE TABLE IF NOT EXISTS whitelisted(Address VARCHAR);");
+        Cursor resultSet = mydatabase.rawQuery("SELECT * FROM whitelisted;", null);
+
+        resultSet.moveToFirst();
+        while(resultSet.isAfterLast() == false){
+            String address = resultSet.getString(0);
+            whiteList.add(address);
+            resultSet.moveToNext();
+        }
+    }
+
+    private void load_languages() {
+        acceptedLanguages = new ArrayList<>();
+
+        SQLiteDatabase mydatabase = openOrCreateDatabase("SpamJAM", null,null);
+        mydatabase.execSQL("CREATE TABLE IF NOT EXISTS languages(Language VARCHAR);");
+        Cursor resultSet = mydatabase.rawQuery("SELECT * FROM languages;", null);
+
+        resultSet.moveToFirst();
+        while(resultSet.isAfterLast() == false){
+            String lang = resultSet.getString(0);
+            acceptedLanguages.add(lang);
+            resultSet.moveToNext();
         }
 
-        HashMap<Integer, Integer> spam_or_ham = new HashMap<>();
-
-        Set<Integer> keys = dataSet.keySet();
-        for (int key : keys) {
-            String message = dataSet.get(key).toLowerCase();
-            spam_or_ham.put(key, classifier(message));
-            if(spam_or_ham.get(key) == Message.SPAM) {
-                Log.e("Red", key + " : " + dataSet.get(key));
-            }
+        if(acceptedLanguages.size() == 0){
+            mydatabase.execSQL("INSERT INTO languages VALUES (\"" + Language_Filter.ENGLISH + "\");");
+            acceptedLanguages.add(Language_Filter.ENGLISH);
         }
-
-        return spam_or_ham;
     }
 
 }
