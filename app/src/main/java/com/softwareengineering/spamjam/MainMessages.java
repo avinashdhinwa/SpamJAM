@@ -59,6 +59,9 @@ public class MainMessages extends AppCompatActivity {
     static List<Integer> id_list_spam = new ArrayList<>();
     static List<Integer> id_list_non_spam = new ArrayList<>();
 
+    static List<String> spam_messages_list = new ArrayList<>();
+    static List<String> non_spam_messages_list = new ArrayList<>();
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -75,7 +78,7 @@ public class MainMessages extends AppCompatActivity {
         listView.setAdapter(arrayAdapter);
         registerForContextMenu(listView);
 
-        //read_classified_messages();
+        read_classified_messages();
 
         readMessages();
 
@@ -100,7 +103,8 @@ public class MainMessages extends AppCompatActivity {
             }
         }
         try {
-            messages_classified.putAll(NBC_Classifier.classify(spam_messages_training, ham_messages_training, messages_dataSet));
+           NBC_Classifier obj = new NBC_Classifier(getApplicationContext());
+            messages_classified.putAll(obj.classify(spam_messages_training,ham_messages_training,messages_dataSet));
         } catch (IOException e) {
             Log.e("Error", "File not found");
             e.printStackTrace();
@@ -124,6 +128,7 @@ public class MainMessages extends AppCompatActivity {
     }
 
     private void read_classified_messages() {
+
         File file = new File(this.getFilesDir(), "messages_classes.txt");
 
         id_to_messages = new HashMap<>();
@@ -197,7 +202,7 @@ public class MainMessages extends AppCompatActivity {
                     flag = 1;
                     id_to_messages.put(id, new Message(id, body, person, address, date));
                 }
-                
+
             } while (cursor.moveToNext());
         } else {
             Log.e("Error", "no messages");
@@ -353,7 +358,7 @@ public class MainMessages extends AppCompatActivity {
     protected void onDestroy() {
         super.onDestroy();
 
-        Log.e("Error", "writing to file started");
+        Log.e("Writing", "writing to file started");
         File file = new File(this.getFilesDir(), "messages_classes.txt");
 
         try {
