@@ -18,6 +18,9 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 
+import org.greenrobot.eventbus.EventBus;
+import org.greenrobot.eventbus.Subscribe;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -25,7 +28,6 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -36,16 +38,25 @@ public class MainMessages extends AppCompatActivity {
 
     private static final int REQUEST_CODE_ASK_PERMISSIONS = 123;
     private static final int HARDCODE_AS_SPAM = 111;
-    private static final int HARDCODE_AS_HAM = 121;
-    private static final int UNMARK = 131;
+    private static final int HARDCODE_AS_HAM = 112;
+    private static final int UNMARK = 113;
+    private static final int DELETE = 114;
+    private static final int BLACKLIST_CONTACT = 115;
+    private static final int WHITELIST_CONTACT = 116;
 
     private static int SHOWING_SPAM_OR_HAM = Message.NOT_SPAM;
-    private static final int TOOLBAR_SETTINGS = 201;
+
+    private static final int TOOLBAR_LANGUAGES = 201;
     private static final int TOOLBAR_SPAM = 202;
     private static final int TOOLBAR_NON_SPAM = 203;
+    private static final int TOOLBAR_BLACKLIST = 204;
+    private static final int TOOLBAR_WHITELIST = 205;
 
     ListView listView;
     ArrayAdapter<String> arrayAdapter;
+
+    SmsBroadcastReceiver smsBroadcastReceiver;
+    static Classifier classifier;
 
     static HashMap<Integer, Message> id_to_messages = new HashMap<>();
 
@@ -59,8 +70,11 @@ public class MainMessages extends AppCompatActivity {
     static List<Integer> id_list_spam = new ArrayList<>();
     static List<Integer> id_list_non_spam = new ArrayList<>();
 
-    static List<String> spam_messages_list = new ArrayList<>();
-    static List<String> non_spam_messages_list = new ArrayList<>();
+    @Override
+    protected void onStart() {
+        super.onStart();
+        EventBus.getDefault().register(this);
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -70,45 +84,38 @@ public class MainMessages extends AppCompatActivity {
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-        if (ContextCompat.checkSelfPermission(getBaseContext(), "android.permission.READ_SMS") != PackageManager.PERMISSION_GRANTED) {
+        while (ContextCompat.checkSelfPermission(getBaseContext(), "android.permission.READ_SMS") != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(MainMessages.this, new String[]{"android.permission.READ_SMS"}, REQUEST_CODE_ASK_PERMISSIONS);
         }
+//        if (ContextCompat.checkSelfPermission(getBaseContext(), "android.permission.RECEIVE_SMS") != PackageManager.PERMISSION_GRANTED) {
+//            ActivityCompat.requestPermissions(MainMessages.this, new String[]{"android.permission.RECEIVE_SMS_SMS"}, REQUEST_CODE_ASK_PERMISSIONS);
+//        }
+//        if (ContextCompat.checkSelfPermission(getBaseContext(), "android.permission.SEND_SMS") != PackageManager.PERMISSION_GRANTED) {
+//            ActivityCompat.requestPermissions(MainMessages.this, new String[]{"android.permission.SEND_SMS"}, REQUEST_CODE_ASK_PERMISSIONS);
+//        }
 
         listView = (ListView) findViewById(R.id.all_messages);
-        listView.setAdapter(arrayAdapter);
         registerForContextMenu(listView);
 
-        read_classified_messages();
+        init();
 
+    }
+
+    private void init() {
+
+        classifier = new Classifier(this);
+
+//        read_classified_messages();
         readMessages();
-
     }
 
     private void classify() {
 
         Set<Integer> keys = id_to_messages.keySet();
 
-        for (int key : keys) {
-            if(id_to_messages.get(key).hard_coded == Message.YES){
-                if(id_to_messages.get(key).spam == Message.SPAM){
-                    spam_messages_training.put(key, id_to_messages.get(key).body);
-                }
-                else{
-                    ham_messages_training.put(key, id_to_messages.get(key).body);
-                }
-                messages_classified.put(key, id_to_messages.get(key).spam);
-            }
-            else{
-                messages_dataSet.put(key, id_to_messages.get(key).body);
-            }
-        }
-        try {
-           NBC_Classifier obj = new NBC_Classifier(getApplicationContext());
-            messages_classified.putAll(obj.classify(spam_messages_training,ham_messages_training,messages_dataSet));
-        } catch (IOException e) {
-            Log.e("Error", "File not found");
-            e.printStackTrace();
-        }
+//        messages_classified = classifier.relearn_the_model(id_to_messages, spam_messages_training, ham_messages_training);
+        messages_classified = classifier.classify_all(id_to_messages);
+
 
         id_list_non_spam.clear();
         id_list_spam.clear();
@@ -138,33 +145,36 @@ public class MainMessages extends AppCompatActivity {
             while (sc.hasNext()) {
                 int id = sc.nextInt();
                 id_to_messages.put(id, new Message(id, sc.nextInt(), sc.nextInt()));
-//                Log.e("Reading : ", id_to_messages.get(id).to_string_for_file());
-                if(id_to_messages.get(id).hard_coded == Message.YES){
-                    if(id_to_messages.get(id).spam == Message.SPAM){
-                        id_list_spam.add(id);
-                    }
-                    else{
-                        id_list_non_spam.add(id);
-                    }
-                    Log.e("Yeah", "got a hardcoded message --> " + id);
-                }
             }
 
         } catch (FileNotFoundException e) {
             Log.e("Error", "Never classified yet");
             e.printStackTrace();
         }
+    }
 
-        id_to_messages.clear();
-        Log.d("read from file", id_to_messages.toString());
+    @Subscribe
+    public void addMessageToList(Message message) {
+        Log.e("broadcast", "Entered subscribed event");
+        int id = message.id;
+        if(!id_to_messages.containsKey(id)) {
+            id_list.add(0, id);
+            id_to_messages.put(id, message);
+            if (classifier.classify(message.body, message.address) == Message.SPAM) {
+                id_list_spam.add(0, id);
+            } else {
+                id_list_non_spam.add(0, id);
+            }
+            Log.e("broadcast", message.to_string_for_debug());
+            Log.e("broadcast", id_to_messages.get(id_list_non_spam.get(0)).to_string_for_debug());
+            fill_the_layout_with_messages();
+        }
     }
 
     void readMessages() {
         String INBOX = "content://sms/inbox";
 
         Cursor cursor = getContentResolver().query(Uri.parse(INBOX), null, null, null, null);
-
-        int flag = 0;
 
         if (cursor.moveToFirst()) { // must check the result to prevent exception
 
@@ -174,24 +184,12 @@ public class MainMessages extends AppCompatActivity {
             int ADDRESS = cursor.getColumnIndex("address");
             int DATE = cursor.getColumnIndex("date");
 
-            Calendar calendar = Calendar.getInstance();
-
             do {
-                /*String msgData = "";
-                for(int idx=0;idx<cursor.getColumnCount();idx++)
-                {
-                    msgData += cursor.getColumnName(idx) + ":" + cursor.getString(idx) + "\n";
-                }*/
 
                 String body = cursor.getString(BODY);
                 int id = cursor.getInt(ID);
                 String person = cursor.getString(PERSON);
-                calendar.setTimeInMillis(cursor.getLong(DATE));
-                String date = String.format("%02d", calendar.get(Calendar.HOUR_OF_DAY)) + ":" +
-                                String.format("%02d", calendar.get(Calendar.MINUTE)) + " " +
-                                String.format("%02d", calendar.get(Calendar.DATE)) + "-" +
-                                String.format("%02d", calendar.get(Calendar.MONTH)) + "-" +
-                                calendar.get(Calendar.YEAR);
+                String date = Message.millisToTime(cursor.getLong(DATE));
                 String address = cursor.getString(ADDRESS);
 
                 id_list.add(id);
@@ -199,17 +197,17 @@ public class MainMessages extends AppCompatActivity {
                 if (id_to_messages.containsKey(id)) {
                     id_to_messages.get(id).set_message(body, person, address, date);
                 } else {
-                    flag = 1;
                     id_to_messages.put(id, new Message(id, body, person, address, date));
+                    id_to_messages.get(id).spam = classifier.classify(body, address);
+                }
+                switch (id_to_messages.get(id).spam){
+                    case Message.NOT_SPAM: id_list_non_spam.add(id); break;
+                    case Message.SPAM: id_list_spam.add(id); break;
                 }
 
             } while (cursor.moveToNext());
         } else {
             Log.e("Error", "no messages");
-        }
-
-        if(flag != 0){
-            classify();
         }
 
         arrayAdapter = new MyAdapter(this, android.R.layout.simple_list_item_1, id_list_non_spam, id_to_messages);
@@ -270,6 +268,19 @@ public class MainMessages extends AppCompatActivity {
                 }
                 classify();
                 break;
+            case BLACKLIST_CONTACT:
+                classifier.addSenderToListAndRemoveFromOther(id_to_messages.get(id_from_pos).address,
+                        "blacklisted", "whitelisted");
+                classify();
+                break;
+            case WHITELIST_CONTACT:
+                classifier.addSenderToListAndRemoveFromOther(id_to_messages.get(id_from_pos).address,
+                        "whitelisted", "blacklisted");
+                Log.e("listing", "whitelisting : " +  id_to_messages.get(id_from_pos).address);
+                classify();
+                break;
+            case DELETE:
+                break;
         }
 
         return super.onContextItemSelected(item);
@@ -284,10 +295,13 @@ public class MainMessages extends AppCompatActivity {
             AdapterView.AdapterContextMenuInfo info = (AdapterView.AdapterContextMenuInfo) menuInfo;
 
             menu.setHeaderTitle("Options");
-            String[] menuItems = {"Mark as Spam", "Mark as Non-Spam", "Unmark"};
+            String[] menuItems = {"Mark Spam", "Mark Non-Spam", "Unmark", "Delete", "Blacklist Contact", "Whitelist Contact"};
             menu.add(Menu.NONE, HARDCODE_AS_SPAM, 0, menuItems[0]);
             menu.add(Menu.NONE, HARDCODE_AS_HAM, 0, menuItems[1]);
             menu.add(Menu.NONE, UNMARK, 0, menuItems[2]);
+            menu.add(Menu.NONE, DELETE, 0, menuItems[3]);
+            menu.add(Menu.NONE, BLACKLIST_CONTACT, 0, menuItems[4]);
+            menu.add(Menu.NONE, WHITELIST_CONTACT, 0, menuItems[5]);
         }
     }
 
@@ -313,8 +327,18 @@ public class MainMessages extends AppCompatActivity {
     public boolean onOptionsItemSelected(MenuItem item) {
 
         switch (item.getItemId()){
-            case TOOLBAR_SETTINGS:{
-                Intent intent = new Intent(this, Settings.class);
+            case TOOLBAR_LANGUAGES:{
+                Intent intent = new Intent(this, Languages.class);
+                startActivity(intent);
+            }
+            break;
+            case TOOLBAR_BLACKLIST:{
+                Intent intent = new Intent(this, Blacklist.class);
+                startActivity(intent);
+            }
+            break;
+            case TOOLBAR_WHITELIST:{
+                Intent intent = new Intent(this, Whitelist.class);
                 startActivity(intent);
             }
             break;
@@ -346,8 +370,11 @@ public class MainMessages extends AppCompatActivity {
             menu.getItem(0).setIcon(R.drawable.ic_report_black_24dp);
         }
 
-        menu.add(0, TOOLBAR_SETTINGS, 1, "Settings");
+        menu.add(0, TOOLBAR_LANGUAGES, 1, "Languages");
         menu.getItem(1).setIcon(R.drawable.ic_settings_black_24dp);
+
+        menu.add(0, TOOLBAR_BLACKLIST, 2, "Blacklist");
+        menu.add(0, TOOLBAR_WHITELIST, 3, "Whitelist");
 
 //        MenuInflater inflater = getMenuInflater();
 //        inflater.inflate(R.menu.toolbar_menu, menu);;
@@ -355,9 +382,23 @@ public class MainMessages extends AppCompatActivity {
     }
 
     @Override
+    protected void onStop() {
+        EventBus.getDefault().unregister(this);
+        super.onStop();
+    }
+
+    @Override
     protected void onDestroy() {
         super.onDestroy();
 
+        Log.e("Writing", "saving model started");
+/*        try {
+            classifier.nbc_classifier.saveClassifier();
+        } catch (IOException e) {
+            Log.e("Writing", "unable to save model");
+            e.printStackTrace();
+        }
+*/
         Log.e("Writing", "writing to file started");
         File file = new File(this.getFilesDir(), "messages_classes.txt");
 

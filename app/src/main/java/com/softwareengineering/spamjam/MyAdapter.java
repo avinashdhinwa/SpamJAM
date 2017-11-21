@@ -39,7 +39,7 @@ public class MyAdapter extends ArrayAdapter {
     public View getView(int position, @Nullable View convertView, @NonNull ViewGroup parent) {
         View view = convertView;
         if (view == null) {
-            view = inflater.inflate(R.layout.listview_row, null);
+            view = inflater.inflate(R.layout.activity_main_messages_listview_row, null);
         }
         if (position % 2 == 1) {
             view.setBackgroundColor(Color.WHITE);
