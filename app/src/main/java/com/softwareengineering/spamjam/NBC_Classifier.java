@@ -361,18 +361,21 @@ public class NBC_Classifier{
             double spamProb = spamCountArray[english] * 1.0 / (spamCountArray[english] + hamCountArray[english]);
 
             for (String s : msgWords) {
+                double spValue,hmValue;
                 if (spamWordsArray[english].containsKey(s)) {
-                    spamProb *= spamWordsArray[english].get(s);
+                    spValue= spamWordsArray[english].get(s);
                 } else {
-                    spamProb *= (1.0 / spamCountArray[english]);
+                    spValue = (1.0 / spamCountArray[english]);
                 }
 
 
                 if (hamWordsArray[english].containsKey(s)) {
-                    hamProb *= hamWordsArray[english].get(s);
+                    hmValue = hamWordsArray[english].get(s);
                 } else {
-                    hamProb *= (1.0 / hamCountArray[english]);
+                    hmValue = (1.0 / hamCountArray[english]);
                 }
+                spamProb *= spValue/(spValue+hmValue);
+                hamProb *= hmValue/(spValue+hmValue);
 
 
             }
