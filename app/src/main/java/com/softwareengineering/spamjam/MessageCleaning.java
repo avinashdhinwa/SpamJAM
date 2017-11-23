@@ -95,7 +95,7 @@ public class MessageCleaning {
     {
         switch (b[i]){
             case 'a': case 'e': case 'i': case 'o': case 'u': return false;
-            case 'y': return (i==0) ? true : !cons(i-1);
+            case 'y': return (i == 0) || !cons(i - 1);
             default: return true;
         }
     }
@@ -182,11 +182,7 @@ public class MessageCleaning {
         }
 
         int ch = b[i];
-        if (ch == 'w' || ch == 'x' || ch == 'y'){
-            return false;
-        }
-
-        return true;
+        return !(ch == 'w' || ch == 'x' || ch == 'y');
     }
 
     private final boolean ends(String s)
@@ -419,7 +415,7 @@ public class MessageCleaning {
                     {
                         ch = ' ';
                     }
-                    if (!Character.isLetter((char) ch))
+                    if (!Character.isLetter(ch))
                     {
 
                         for (int c = 0; c < j; c++) s.add(w[c]);

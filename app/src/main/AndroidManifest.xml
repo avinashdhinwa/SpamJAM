@@ -3,7 +3,8 @@
     package="com.softwareengineering.spamjam">
 
     <uses-permission android:name="android.permission.READ_SMS" />
-
+    <uses-permission android:name="android.permission.SEND_SMS" />
+    <uses-permission android:name="android.permission.RECEIVE_SMS" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
 
     <application
@@ -19,16 +20,43 @@
             android:theme="@style/AppTheme.NoActionBar">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
+
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".Settings"
+        <activity
+            android:name=".Languages"
             android:theme="@style/AppTheme.NoActionBar">
             android:parentActivityName=".MainMessages"
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
-                android:value=".MainMessages"/>
+                android:value=".MainMessages" />
         </activity>
+        <activity
+            android:name=".Blacklist"
+            android:theme="@style/AppTheme.NoActionBar">
+            android:parentActivityName=".MainMessages"
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value=".MainMessages" />
+        </activity>
+        <activity
+            android:name=".Whitelist"
+            android:theme="@style/AppTheme.NoActionBar">
+            android:parentActivityName=".MainMessages"
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value=".MainMessages" />
+        </activity>
+        <activity android:name=".MainActivity">
+        </activity>
+        <activity android:name=".BlacklistedContacts" />
+
+        <receiver android:name=".SmsBroadcastReceiver" android:exported="true" >
+            <intent-filter android:priority="999" >
+                <action android:name="android.provider.Telephony.SMS_RECEIVED" />
+            </intent-filter>
+        </receiver>
     </application>
 
 </manifest>

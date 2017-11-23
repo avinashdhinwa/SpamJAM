@@ -1,9 +1,9 @@
 <resources>
     <string name="app_name">SpamJAM</string>
-    <string name="title_activity_main_messages">MainMessages</string>
+    <string name="title_activity_main_messages">SpamJAM</string>
     <string name="title_activity_settings">Settings</string>
 
-    <!-- Strings related to Settings -->
+    <!-- Strings relatedLanguagesings -->
 
     <!-- Example General settings -->
     <string name="pref_header_general">General</string>

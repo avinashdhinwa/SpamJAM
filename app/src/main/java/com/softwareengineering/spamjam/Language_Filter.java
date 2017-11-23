@@ -3,35 +3,23 @@ package com.softwareengineering.spamjam;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.LinkedList;
 import java.util.Map;
 
 public class Language_Filter {
 
-    //LinkedList<String> list = new LinkedList<>();
+    static String ENGLISH = "English";
+    static String HINDI = "Hindi";
+    static String PUNJABI = "Punjabi";
+    static String GUJARATI = "Gujarati";
+    static String MALAYALAM = "Malayalam";
 
-    public static ArrayList<String> languages =  new ArrayList<>(Arrays.asList("English",
-                                                                                    "Hindi",
-                                                                                    "Punjabi",
-                                                                                    "Gujarati",
-                                                                                    "Malayalam"));
+    public static ArrayList<String> languages =  new ArrayList<>(Arrays.asList(ENGLISH,
+                                                                                    HINDI,
+                                                                                    PUNJABI,
+                                                                                    GUJARATI,
+                                                                                    MALAYALAM));
 
     static HashMap<String , Integer> map = new HashMap<>();
-
-    public static LinkedList ReadMsg(LinkedList<String> list){
-       LinkedList<String> pred = new LinkedList<>();
-
-        for(int i=0;i<list.size();i++) {
-            pred.add(predictor(list.get(i)));
-            map.put("Hindi",0);
-            map.put("English",0);
-            map.put("Gujarati",0);
-            map.put("Punjabi",0);
-            map.put("Malayalam",0);
-        }
-
-        return pred;
-    }
 
     public static String predictor(String Msg){
         int sum=0;
@@ -44,16 +32,16 @@ public class Language_Filter {
 
             if((int)Msg.charAt(i)>=2309 && (int)Msg.charAt(i)<2431){
                 map.put("Hindi", map.get("Hindi") + 1);
-            };
+            }
             if((int)Msg.charAt(i)>=2688 && (int)Msg.charAt(i)<2815){
                 map.put("Gujarati", map.get("Gujarati") + 1);
-            };
+            }
             if((int)Msg.charAt(i)>=2560 && (int)Msg.charAt(i)<2687){
                 map.put("Punjabi", map.get("Punjabi") + 1);
-            };
+            }
             if((int)Msg.charAt(i)>=0 && (int)Msg.charAt(i)<127){
                 map.put("English", map.get("English") + 1);
-            };
+            }
             if((int)Msg.charAt(i)>=3328 && (int)Msg.charAt(i)<3455){
                 map.put("Malyalam", map.get("Malyalam") + 1);
             }
@@ -75,11 +63,7 @@ public class Language_Filter {
     }
 
     public Language_Filter(){
-        languages.add("English");
-        languages.add("Hindi");
-        languages.add("Punjabi");
-        languages.add("Gujarati");
-        languages.add("Malayalam");
+
     }
 
 }

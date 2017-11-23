@@ -12,14 +12,14 @@ import android.widget.LinearLayout;
 import java.util.ArrayList;
 import java.util.HashMap;
 
-public class Settings extends AppCompatActivity {
+public class Languages extends AppCompatActivity {
 
     SQLiteDatabase mydatabase;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_settings);
+        setContentView(R.layout.activity_languages);
 
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);

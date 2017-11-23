@@ -1,22 +1,17 @@
 package com.softwareengineering.spamjam;
 
-import android.app.Activity;
 import android.content.Context;
-import android.os.Environment;
-import android.support.v7.app.AppCompatActivity;
+import android.database.sqlite.SQLiteDatabase;
 import android.util.Log;
 
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.nio.charset.Charset;
 import java.util.HashMap;
 import java.util.Hashtable;
-import java.util.Scanner;
 import java.util.Set;
 
 /**
@@ -44,16 +39,22 @@ public class NBC_Classifier{
     int spamCountHindi = 0;
     int hamCountHindi = 0;*/
 
-    public  NBC_Classifier(Context ctx)
+    public  NBC_Classifier(Context ctx, SQLiteDatabase mydatabase)
     {
         context = ctx;
+        load_classifier(mydatabase);
         for(int i = 0; i< size;i++){
             spamCountArray[i] = 0;
             hamCountArray[i] = 0;
             spamWordsArray[i] = new Hashtable<String, Double>();
             hamWordsArray[i] = new Hashtable<String, Double>();
         }
+    }
 
+
+    public void load_classifier(SQLiteDatabase mydatabase) {
+
+    }
 
     }
 
@@ -317,7 +318,7 @@ public class NBC_Classifier{
     }
 
 
-    /*public void StoreClassifier(String language) throws IOException
+    /*public void saveClassifier(String language) throws IOException
     {
         if(language.equals("english")){
             File f = new File(context.getFilesDir(),"english_model");
@@ -349,7 +350,7 @@ public class NBC_Classifier{
         }
     }*/
 
-    public int classifier(String message)
+    public int classify(String message)
     {
         String lang = Language_Filter.predictor(message);
 
@@ -418,7 +419,7 @@ public class NBC_Classifier{
 
     }
 
-    public HashMap<Integer, Integer> classify(HashMap<Integer, String> Spam, HashMap<Integer, String> Ham, HashMap<Integer, String> dataSet) throws IOException{
+    public HashMap<Integer, Integer> classify_all(HashMap<Integer, String> Spam, HashMap<Integer, String> Ham, HashMap<Integer, String> dataSet) throws IOException{
 
         fillTable(Spam, Ham);
        // fillTableHindi(Spam,Ham);
@@ -429,7 +430,7 @@ public class NBC_Classifier{
         for (int key : keys) {
             //Log.e("Red", key + " : " + dataSet.get(key));
             String message = dataSet.get(key).toLowerCase();
-            spam_or_ham.put(key, classifier(message));
+            spam_or_ham.put(key, classify(message));
         }
         //StoreClassifier("english");
         return spam_or_ham;

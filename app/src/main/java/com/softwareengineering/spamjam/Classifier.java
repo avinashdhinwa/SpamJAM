@@ -1,9 +1,14 @@
 package com.softwareengineering.spamjam;
 
+import android.content.ContentValues;
+import android.content.Context;
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
 import android.util.Log;
 
+import java.io.IOException;
 import java.util.HashMap;
-import java.util.Hashtable;
+import java.util.HashSet;
 import java.util.Set;
 
 /**
@@ -12,139 +17,178 @@ import java.util.Set;
 
 public class Classifier {
 
-    static Hashtable<String,Double> spamWords = new Hashtable<>();
-    static Hashtable<String,Double> hamWords = new Hashtable<>();
-    static int spamCount = 0;
-    static int hamCount = 0;
+    SQLiteDatabase mydatabase;
+    NBC_Classifier nbc_classifier;
 
-    public static void fillTable(HashMap<Integer, String> Spam, HashMap<Integer, String> Ham)
-    {
-        String message;
+    HashSet<String> acceptedLanguages;
+    HashSet<String> blackList;
+    HashSet<String> whiteList;
 
-        Set<Integer> keys = Ham.keySet();
-        for (int key : keys){
-            message = Ham.get(key).toLowerCase();
-            String [] msgWords = message.split("\\s+");
+    static HashMap<Integer, Integer> messages_classified = new HashMap<>();
 
-            hamCount += msgWords.length;
+    public Classifier(Context context){
 
-            for(String s : msgWords){
-                if(!hamWords.containsKey(s)){
-                    hamWords.put(s, 1.0);
-                }
-                else{
-                    hamWords.put(s, hamWords.get(s)+1);
-                }
-            }
-        }
+        nbc_classifier = new NBC_Classifier(context, mydatabase);
 
-        keys = Spam.keySet();
-        for (int key : keys){
-            message = Spam.get(key).toLowerCase();
-            String [] msgWords = message.split("\\s+");
+        init_database(context);
 
-            spamCount += msgWords.length;
+        load_languages();
+        load_blacklist();
+        load_whitelist();
 
-            for(String s : msgWords){
-                if(!spamWords.containsKey(s)){
-                    spamWords.put(s, 1.0);
-                }
-                else{
-                    spamWords.put(s, spamWords.get(s)+1);
-                }
-            }
-        }
-
-        Set<String> keySet = hamWords.keySet();
-        for(String s: keySet)
-        {
-            hamWords.put(s, hamWords.get(s)/hamCount);
-        }
-
-        keySet = spamWords.keySet();
-        for(String s: keySet)
-        {
-            spamWords.put(s, spamWords.get(s)/spamCount);
-        }
     }
 
-    public static int classifier(String message)
-    {
-        String [] msgWords = message.split("\\s+");
-        double hamProb = hamCount*1.0/(hamCount+spamCount);
-        double spamProb = spamCount*1.0/(spamCount+hamCount);
+    private void init_database(Context context) {
+        mydatabase = context.openOrCreateDatabase("SpamJAM", Context.MODE_PRIVATE,null);
 
-        for(String s : msgWords)
-        {
-            if(spamWords.containsKey(s))
-            {
-                spamProb *= spamWords.get(s);
-            }
-            else
-            {
-                spamProb *= (1.0/spamCount);
-            }
+        mydatabase.execSQL("CREATE TABLE IF NOT EXISTS languages(Language VARCHAR);");
+        mydatabase.execSQL("CREATE TABLE IF NOT EXISTS blacklisted(Address VARCHAR);");
+        mydatabase.execSQL("CREATE TABLE IF NOT EXISTS whitelisted(Address VARCHAR);");
+    }
 
+    public int classify(String message, String sender){
 
-            if(hamWords.containsKey(s))
-            {
-                hamProb *= hamWords.get(s);
-            }
-            else
-            {
-                hamProb *= (1.0/hamCount);
-            }
+        String lang = Language_Filter.predictor(message);
 
-        }
-
-        if(hamProb >= spamProb)
-            return Message.NOT_SPAM;
-        else
+        if(blackList.contains(sender)){
             return Message.SPAM;
+        }
+        else if(whiteList.contains(sender)){
+            return Message.NOT_SPAM;
+        }
+        else if(!acceptedLanguages.contains(lang)){
+            return Message.SPAM;
+        }
 
+//        return nbc_classifier.classify(message);
+        return Message.NOT_SPAM;
     }
 
-//    public void classify_by_language(){
-//        ArrayList<String> languages = Language_Filter.languages;
-//        HashMap<String, Integer> languages_selected = new HashMap<>();
-//
-//        SQLiteDatabase mydatabase = openOrCreateDatabase("SpamJAM",MODE_PRIVATE,null);
-//        mydatabase.execSQL("CREATE TABLE IF NOT EXISTS languages(Language VARCHAR);");
-//        Cursor resultSet = mydatabase.rawQuery("SELECT * FROM languages;", null);
-//
-//        resultSet.moveToFirst();
-//        while(resultSet.isAfterLast() == false){
-//            String lang = resultSet.getString(0);
-//            languages_selected.put(lang, 1);
-//            resultSet.moveToNext();
-//        }
-//    }
+    public HashMap<Integer, Integer> classify_all(HashMap<Integer, Message> id_to_messages){
 
-    public static HashMap<Integer, Integer> classify(HashMap<Integer, String> Spam, HashMap<Integer, String> Ham, HashMap<Integer, String> dataSet){
+        messages_classified.clear();
 
-        fillTable(Spam, Ham);
-
-        Set<String> keys_ = spamWords.keySet();
-        for (String key : keys_) {
-            Log.d("Probab Spam", key + " : " + spamWords.get(key));
-        }
-        keys_ = hamWords.keySet();
-        for (String key : keys_) {
-            Log.d("Probab Ham", key + " : " + hamWords.get(key));
-        }
-
-        HashMap<Integer, Integer> spam_or_ham = new HashMap<>();
-
-        Set<Integer> keys = dataSet.keySet();
+        Set<Integer> keys = id_to_messages.keySet();
         for (int key : keys) {
-            String message = dataSet.get(key).toLowerCase();
-            spam_or_ham.put(key, classifier(message));
-            if(spam_or_ham.get(key) == Message.SPAM) {
-                Log.e("Red", key + " : " + dataSet.get(key));
+            if(id_to_messages.get(key).hard_coded == Message.YES){
+                messages_classified.put(key, id_to_messages.get(key).spam);
+            }
+            else{
+                String message = id_to_messages.get(key).body;
+                String sender = id_to_messages.get(key).address;
+                messages_classified.put(key, classify(message, sender));
             }
         }
 
-        return spam_or_ham;
+        return messages_classified;
     }
 
+    public HashMap<Integer, Integer> retrain_the_model(HashMap<Integer, Message> id_to_messages,
+                                                       HashMap<Integer, String> spam_messages_training,
+                                                       HashMap<Integer, String> ham_messages_training) throws IOException {
+
+        messages_classified.clear();
+
+        nbc_classifier.fillTable(spam_messages_training, ham_messages_training);
+        nbc_classifier.fillTableHindi(spam_messages_training, ham_messages_training);
+
+        HashMap<Integer, String> messages_dataSet = new HashMap<>();
+
+        Set<Integer> keys = id_to_messages.keySet();
+        for (int key : keys) {
+            if(id_to_messages.get(key).hard_coded == Message.YES){
+                messages_classified.put(key, id_to_messages.get(key).spam);
+            }
+            else{
+                messages_dataSet.put(key, id_to_messages.get(key).body);
+            }
+        }
+
+        messages_classified.putAll(nbc_classifier.classify_all(spam_messages_training,ham_messages_training,messages_dataSet));
+
+        return messages_classified;
+    }
+
+    private void load_blacklist() {
+        blackList = new HashSet<>();
+
+        Cursor resultSet = mydatabase.rawQuery("SELECT * FROM blacklisted;", null);
+
+        resultSet.moveToFirst();
+        while(resultSet.isAfterLast() == false){
+            String address = resultSet.getString(0);
+            Log.e("listing", "blacklists:" +  address);
+            blackList.add(address);
+            resultSet.moveToNext();
+        }
+    }
+
+    private void load_whitelist() {
+        whiteList = new HashSet<>();
+
+        Cursor resultSet = mydatabase.rawQuery("SELECT * FROM whitelisted;", null);
+
+        resultSet.moveToFirst();
+        while(resultSet.isAfterLast() == false){
+            String address = resultSet.getString(0);
+            Log.e("listing", "whitelists:" +  address);
+            whiteList.add(address);
+            resultSet.moveToNext();
+        }
+    }
+
+    private void load_languages() {
+        acceptedLanguages = new HashSet<>();
+
+        Cursor resultSet = mydatabase.rawQuery("SELECT * FROM languages;", null);
+
+        resultSet.moveToFirst();
+        while(resultSet.isAfterLast() == false){
+            String lang = resultSet.getString(0);
+            acceptedLanguages.add(lang);
+            resultSet.moveToNext();
+        }
+
+        if(acceptedLanguages.size() == 0){
+            ContentValues contentValues = new ContentValues();
+            contentValues.put("Language", Language_Filter.ENGLISH);
+            mydatabase.insert("languages", null, contentValues);
+            acceptedLanguages.add(Language_Filter.ENGLISH);
+        }
+    }
+
+    public void addSenderToListAndRemoveFromOther(String address, String addTo, String removeFrom) {
+
+        int flag = 0;
+
+        if(addTo.equals("blacklisted")) {
+            if (blackList.contains(address)){
+                return;
+            }
+            blackList.add(address);
+            if(whiteList.contains(address)){
+                whiteList.remove(address);
+                flag = 1;
+            }
+        }
+        else if(addTo.equals("whitelisted")) {
+            if (whiteList.contains(address)){
+                return;
+            }
+            whiteList.add(address);
+            if(blackList.contains(address)){
+                blackList.remove(address);
+                flag = 1;
+            }
+        }
+
+        ContentValues contentValues = new ContentValues();
+        contentValues.put("Address", address);
+        mydatabase.insert(addTo, null, contentValues);
+
+        if(flag == 1) {
+            Log.e("listing", "removing " + address + " from " + removeFrom);
+            mydatabase.delete(removeFrom, "Address=?", new String[]{address});
+        }
+    }
 }
