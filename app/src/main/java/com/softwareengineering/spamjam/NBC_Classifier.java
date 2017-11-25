@@ -39,23 +39,29 @@ public class NBC_Classifier{
     int spamCountHindi = 0;
     int hamCountHindi = 0;*/
 
-    public  NBC_Classifier(Context ctx, SQLiteDatabase mydatabase)
+    public  NBC_Classifier(Context ctx)
     {
         context = ctx;
-        load_classifier(mydatabase);
         for(int i = 0; i< size;i++){
             spamCountArray[i] = 0;
             hamCountArray[i] = 0;
             spamWordsArray[i] = new Hashtable<String, Double>();
             hamWordsArray[i] = new Hashtable<String, Double>();
         }
-    }
 
-
-    public void load_classifier(SQLiteDatabase mydatabase) {
+        load_classifier();
 
     }
 
+    private void load_classifier() {
+        try {
+            fillTable(new HashMap<Integer, String>(), new HashMap<Integer, String>());
+            Log.d("debug", "loading classifer");
+            Log.d("debug", "Spam count english : " + spamCountArray[english]);
+            Log.d("debug", "ham count english : " + hamCountArray[english]);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
 
@@ -233,6 +239,10 @@ public class NBC_Classifier{
 
 
         readDataSetFromFileInTable(context);
+
+        Log.e("abcd","spam count = "+spamCountArray[english]);
+        Log.e("abcd","ham count = "+hamCountArray[english]);
+
         Set<Integer> keys = Ham.keySet();
         for (int key : keys){
             message = Ham.get(key).toLowerCase();
@@ -255,7 +265,7 @@ public class NBC_Classifier{
 
 
            else if(lang.equals("Hindi")){
-                String[] msgWords = message.split("[\\s|;|:|,|)|(|{|}|[|]|\n]+");
+                String[] msgWords = MessageCleaning.HindiMessageCleaning(message.toLowerCase()).split("\\s+");//message.split("[\\s|;|:|,|)|(|{|}|[|]|/| |-|\n]+");
 
                 hamCountArray[hindi] += msgWords.length;
 
@@ -289,7 +299,7 @@ public class NBC_Classifier{
                 }
             }
             else if(lang.equals("Hindi")){
-                String[] msgWords = message.split("[\\s|;|:|,|)|(|{|}|[|]|\n]+");
+                String[] msgWords = MessageCleaning.HindiMessageCleaning(message.toLowerCase()).split("\\s+");//message.split("[\\s|;|:|,|)|(|{|}|[|]|/| |-|\n]+");
 
                 spamCountArray[hindi] += msgWords.length;
 
@@ -360,9 +370,8 @@ public class NBC_Classifier{
             String[] msgWords = message.split("\\s+");
             double hamProb = hamCountArray[english] * 1.0 / (hamCountArray[english] + spamCountArray[english]);
             double spamProb = spamCountArray[english] * 1.0 / (spamCountArray[english] + hamCountArray[english]);
-
+            double spValue,hmValue;
             for (String s : msgWords) {
-                double spValue,hmValue;
                 if (spamWordsArray[english].containsKey(s)) {
                     spValue= spamWordsArray[english].get(s);
                 } else {
@@ -375,9 +384,9 @@ public class NBC_Classifier{
                 } else {
                     hmValue = (1.0 / hamCountArray[english]);
                 }
-                spamProb *= spValue/(spValue+hmValue);
-                hamProb *= hmValue/(spValue+hmValue);
 
+                hamProb *= hmValue/(hmValue+spValue);
+                spamProb *= spValue/(spValue+hmValue);
 
             }
 
@@ -388,7 +397,7 @@ public class NBC_Classifier{
         }
         else if(lang.equals("Hindi")){
 
-            String[] msgWords = message.split("\\s+");
+            String[] msgWords = MessageCleaning.HindiMessageCleaning(message.toLowerCase()).split("\\s+");//message.split("[\\s|;|:|,|)|(|{|}|[|]|/| |-]+");
             double hamProb = hamCountArray[hindi] * 1.0 / (hamCountArray[hindi] + spamCountArray[hindi]);
             double spamProb = spamCountArray[hindi] * 1.0 / (spamCountArray[hindi] + hamCountArray[hindi]);
 
@@ -419,9 +428,9 @@ public class NBC_Classifier{
 
     }
 
-    public HashMap<Integer, Integer> classify_all(HashMap<Integer, String> Spam, HashMap<Integer, String> Ham, HashMap<Integer, String> dataSet) throws IOException{
+    public HashMap<Integer, Integer> classify_all(HashMap<Integer, String> dataSet) throws IOException{
 
-        fillTable(Spam, Ham);
+//        fillTable(Spam, Ham);
        // fillTableHindi(Spam,Ham);
 
         HashMap<Integer, Integer> spam_or_ham = new HashMap<>();

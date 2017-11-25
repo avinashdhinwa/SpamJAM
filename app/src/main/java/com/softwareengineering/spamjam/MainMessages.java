@@ -43,6 +43,8 @@ public class MainMessages extends AppCompatActivity {
     private static final int DELETE = 114;
     private static final int BLACKLIST_CONTACT = 115;
     private static final int WHITELIST_CONTACT = 116;
+    private static final int RETRAIN = 111;
+    private static final int CLASSIFY_BY_ADDRESS_ONLY = 112;
 
     private static int SHOWING_SPAM_OR_HAM = Message.NOT_SPAM;
 
@@ -109,11 +111,17 @@ public class MainMessages extends AppCompatActivity {
         readMessages();
     }
 
-    private void classify() {
+    private void classify(int MODE) {
 
         Set<Integer> keys = id_to_messages.keySet();
 
-//        messages_classified = classifier.relearn_the_model(id_to_messages, spam_messages_training, ham_messages_training);
+        if(MODE == RETRAIN) {
+            try {
+                classifier.retrain_the_model(id_to_messages, spam_messages_training, ham_messages_training);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
         messages_classified = classifier.classify_all(id_to_messages);
 
 
@@ -239,7 +247,7 @@ public class MainMessages extends AppCompatActivity {
                     if (messages_dataSet.containsKey(id_from_pos)) {
                         messages_dataSet.remove(id_from_pos);
                     }
-                    classify();
+                    classify(RETRAIN);
                 }
                 break;
             case HARDCODE_AS_SPAM:
@@ -253,7 +261,7 @@ public class MainMessages extends AppCompatActivity {
                     if (messages_dataSet.containsKey(id_from_pos)) {
                         messages_dataSet.remove(id_from_pos);
                     }
-                    classify();
+                    classify(RETRAIN);
                 }
                 break;
             case UNMARK:
@@ -266,18 +274,18 @@ public class MainMessages extends AppCompatActivity {
                 if(!messages_dataSet.containsKey(id_from_pos)) {
                     messages_dataSet.put(id_from_pos, id_to_messages.get(id_from_pos).body);
                 }
-                classify();
+                classify(RETRAIN);
                 break;
             case BLACKLIST_CONTACT:
                 classifier.addSenderToListAndRemoveFromOther(id_to_messages.get(id_from_pos).address,
                         "blacklisted", "whitelisted");
-                classify();
+                classify(CLASSIFY_BY_ADDRESS_ONLY);
                 break;
             case WHITELIST_CONTACT:
                 classifier.addSenderToListAndRemoveFromOther(id_to_messages.get(id_from_pos).address,
                         "whitelisted", "blacklisted");
                 Log.e("listing", "whitelisting : " +  id_to_messages.get(id_from_pos).address);
-                classify();
+                classify(CLASSIFY_BY_ADDRESS_ONLY);
                 break;
             case DELETE:
                 break;
