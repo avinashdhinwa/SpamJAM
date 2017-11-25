@@ -217,6 +217,10 @@ public class NBC_Classifier{
             }
         }
 
+
+        Log.e("printer","spam count = "+spamCountArray[english]);
+        Log.e("printer","ham Count = "+hamCountArray[english]);
+
     }
 
 
@@ -266,22 +270,21 @@ public class NBC_Classifier{
                 if (spamWordsArray[english].containsKey(s)) {
                     spValue= spamWordsArray[english].get(s);
                 } else {
-                    spValue = (1.0 / spamCountArray[english]);
+                    spValue = (1.0 / (spamCountArray[english]+hamCountArray[english]));
                 }
 
 
                 if (hamWordsArray[english].containsKey(s)) {
                     hmValue = hamWordsArray[english].get(s);
                 } else {
-                    hmValue = (1.0 / hamCountArray[english]);
+                    hmValue = (1.0 /(spamCountArray[english] + hamCountArray[english]));
                 }
 
                 hamProb *= hmValue/(hmValue+spValue);
                 spamProb *= spValue/(spValue+hmValue);
 
             }
-
-            if (hamProb > spamProb) {
+            if (hamProb >= spamProb) {
                 return Message.NOT_SPAM;
             }
             else {
