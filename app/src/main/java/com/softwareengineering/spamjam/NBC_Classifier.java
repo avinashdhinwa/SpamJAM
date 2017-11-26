@@ -56,7 +56,7 @@ public class NBC_Classifier{
 
     }
 
-    }
+
 
 
     public void readDataSetFromFileInTable(Context ctx)

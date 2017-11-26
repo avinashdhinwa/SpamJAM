@@ -90,7 +90,6 @@ public class Classifier {
         messages_classified.clear();
 
         nbc_classifier.fillTable(spam_messages_training, ham_messages_training);
-        nbc_classifier.fillTableHindi(spam_messages_training, ham_messages_training);
 
         HashMap<Integer, String> messages_dataSet = new HashMap<>();
 
