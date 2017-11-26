@@ -1,17 +1,16 @@
 package com.softwareengineering.spamjam;
 
 import android.content.Context;
-import android.database.sqlite.SQLiteDatabase;
 import android.util.Log;
 
-import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.util.HashMap;
 import java.util.Hashtable;
+import java.util.Scanner;
 import java.util.Set;
 
 /**
@@ -46,7 +45,43 @@ public class NBC_Classifier{
 
     private void load_classifier() {
         try {
-            fillTable(new HashMap<Integer, String>(), new HashMap<Integer, String>());
+            File english_model = new File(context.getFilesDir(), "english_model");
+            File hindi_model = new File(context.getFilesDir(), "hindi_model");
+            if (english_model.exists() && hindi_model.exists()) {
+                Scanner scanner = new Scanner(new FileReader(english_model));
+
+                while (scanner.hasNextLine()) {
+                    String word = scanner.next();
+                    Double spamValue = scanner.nextDouble();
+                    Double hamValue = scanner.nextDouble();
+                    if (spamValue != 0) {
+                        spamWordsArray[english].put(word, spamValue);
+                    }
+                    if (hamValue != 0) {
+                        hamWordsArray[english].put(word, hamValue);
+                    }
+                    //Log.d("savedloading",word+" "+spamValue+" "+hamValue);
+
+                }
+                scanner.close();
+
+                scanner = new Scanner(new FileReader(hindi_model));
+
+                while (scanner.hasNextLine()) {
+                    String word = scanner.next();
+                    Double spamValue = scanner.nextDouble();
+                    Double hamValue = scanner.nextDouble();
+
+                    if (spamValue != 0) {
+                        spamWordsArray[hindi].put(word, spamValue);
+                    }
+                    if (hamValue != 0) {
+                        hamWordsArray[hindi].put(word, hamValue);
+                    }
+                }
+            } else {
+                fillTable(new HashMap<Integer, String>(), new HashMap<Integer, String>());
+            }
             Log.d("debug", "loading classifer");
             Log.d("debug", "Spam count english : " + spamCountArray[english]);
             Log.d("debug", "ham count english : " + hamCountArray[english]);
@@ -61,61 +96,41 @@ public class NBC_Classifier{
         int EnglishId = R.raw.dataset_english;
         InputStream inputStream = ctx.getResources().openRawResource(EnglishId);
 
-        InputStreamReader inputreader = new InputStreamReader(inputStream);
-        BufferedReader bufferedreader = new BufferedReader(inputreader);
-        String line;
-        try
-        {
-            while (( line = bufferedreader.readLine()) != null) {
-                String spliter[] = line.toLowerCase().split("\t");
-                int spamValue = Integer.parseInt(spliter[1]);
-                int hamValue = Integer.parseInt(spliter[2]);
-                if(spamValue != 0){
-                    spamWordsArray[english].put(spliter[0],spamValue*1.0);
-                    spamCountArray[english] += spamValue;
-                }
-                if(hamValue != 0){
-                    hamWordsArray[english].put(spliter[0],hamValue*1.0);
-                    hamCountArray[english] += hamValue;
-                }
+        Scanner scanner = new Scanner(inputStream);
+        while (scanner.hasNextLine()) {
+            String word = scanner.next();
+            int spamValue = scanner.nextInt();
+            int hamValue = scanner.nextInt();
+            if (spamValue != 0) {
+                spamWordsArray[english].put(word, spamValue * 1.0);
+                spamCountArray[english] += spamValue;
             }
-            bufferedreader.close();
-        }
-        catch (IOException e)
-        {
-            Log.e("Exception",e.getMessage());
+            if (hamValue != 0) {
+                hamWordsArray[english].put(word, hamValue * 1.0);
+                hamCountArray[english] += hamValue;
+            }
         }
 
         int HindiId = R.raw.dataset_hindi;
 
         inputStream = ctx.getResources().openRawResource(HindiId);
+        scanner = new Scanner(inputStream);
 
-        inputreader = new InputStreamReader(inputStream);
-        bufferedreader = new BufferedReader(inputreader);
-        try
-        {
-            while (( line = bufferedreader.readLine()) != null) {
-                String spliter[] = line.split("\t");
-               // Log.e("mylogvalue",line+" "+spliter.length);
-                int spamValue = Integer.parseInt(spliter[1]);
-                int hamValue = Integer.parseInt(spliter[2]);
-                if(spamValue != 0){
-                    spamWordsArray[hindi].put(spliter[0],spamValue*1.0);
-                    spamCountArray[hindi] += spamValue;
-                }
-                if(hamValue != 0){
-                    hamWordsArray[hindi].put(spliter[0],hamValue*1.0);
-                    hamCountArray[hindi] += hamValue;
-                }
+        while (scanner.hasNextLine()) {
+            String word = scanner.next();
+            int spamValue = scanner.nextInt();
+            int hamValue = scanner.nextInt();
+            if (spamValue != 0) {
+                spamWordsArray[hindi].put(word, spamValue * 1.0);
+                spamCountArray[hindi] += spamValue;
             }
-            bufferedreader.close();
-        }
-        catch (IOException e)
-        {
-            Log.e("lines",e.getMessage()+" errorMessage");
+            if (hamValue != 0) {
+                hamWordsArray[hindi].put(word, hamValue * 1.0);
+                hamCountArray[hindi] += hamValue;
+            }
         }
 
-
+        scanner.close();
     }
 
 
@@ -224,37 +239,60 @@ public class NBC_Classifier{
     }
 
 
-    /*public void saveClassifier(String language) throws IOException
+    public void saveClassifier() throws IOException
     {
-        if(language.equals("english")){
-            File f = new File(context.getFilesDir(),"english_model");
-            FileWriter fw = new FileWriter(f);
-            StringBuilder stringBuilder = new StringBuilder();
-
-            Set<String> keys = spamWordsEng.keySet();
-
-            Double value;
-            for(String key: keys){
-                if(hamWordsEng.containsKey(key)){
-                    value = hamWordsEng.get(key);
-                }
-                else{
+        File f = new File(context.getFilesDir(), "english_model");
+        FileWriter fw = new FileWriter(f);
+        Set<String> keys = spamWordsArray[english].keySet();
+        Double value;
+        StringBuilder eng = new StringBuilder();
+        for (String key : keys) {
+            if (hamWordsArray[english].containsKey(key)) {
+                value = hamWordsArray[english].get(key);
+                hamWordsArray[english].remove(key);
+            } else {
                     value = 0.0;
-                }
-                stringBuilder.append(key+"\t"+spamWordsEng.get(key)+"\t"+value+"\n");
             }
-
-            keys = hamWordsEng.keySet();
-            for(String key: keys){
-                stringBuilder.append(key+"\t"+"0.0"+"\t"+hamWordsEng.get(key)+"\n");
-            }
-
-            String string = stringBuilder.toString().substring(0,stringBuilder.length()-1);
-            fw.write(string);
-            fw.close();
-
+            //Log.d("saved",key+" "+value+" "+spamWordsArray[english].get(key));
+            eng.append(key + "\t" + spamWordsArray[english].get(key) + "\t" + value + "\n");
         }
-    }*/
+
+        keys = hamWordsArray[english].keySet();
+        for (String key : keys) {
+            eng.append(key + "\t" + "0.0" + "\t" + hamWordsArray[english].get(key) + "\n");
+        }
+        fw.write(eng.toString().substring(0, eng.length() - 1));
+        fw.close();
+
+
+        f = new File(context.getFilesDir(), "hindi_model");
+        fw = new FileWriter(f);
+        keys = spamWordsArray[hindi].keySet();
+        StringBuilder hin = new StringBuilder();
+        for (String key : keys) {
+            if (hamWordsArray[hindi].containsKey(key)) {
+                value = hamWordsArray[hindi].get(key);
+                hamWordsArray[hindi].remove(key);
+            } else {
+                value = 0.0;
+            }
+            hin.append(key + "\t" + spamWordsArray[hindi].get(key) + "\t" + value + "\n");
+        }
+
+        keys = hamWordsArray[hindi].keySet();
+        for (String key : keys) {
+            hin.append(key + "\t" + "0.0" + "\t" + hamWordsArray[hindi].get(key) + "\n");
+        }
+        fw.write(hin.toString().substring(0, hin.length() - 1));
+        fw.close();
+
+        for (int i = 0; i < size; i++) {
+            spamWordsArray[i].clear();
+            hamWordsArray[i].clear();
+        }
+
+
+    }
 
     public int classify(String message)
     {
