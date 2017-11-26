@@ -5,8 +5,14 @@ import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Parcelable;
+import android.provider.SyncStateContract;
+import android.support.annotation.NonNull;
+import android.support.design.widget.NavigationView;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
+import android.support.v4.widget.DrawerLayout;
+import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
@@ -17,6 +23,7 @@ import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
+import android.widget.Toast;
 
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
@@ -27,6 +34,7 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -35,6 +43,11 @@ import java.util.Scanner;
 import java.util.Set;
 
 public class MainMessages extends AppCompatActivity {
+
+    private Toolbar toolbar;
+    private NavigationView navigationView;
+    private DrawerLayout drawerLayout;
+    ActionBarDrawerToggle actionBarDrawerToggle;
 
     private static final int REQUEST_CODE_ASK_PERMISSIONS = 123;
     private static final int HARDCODE_AS_SPAM = 111;
@@ -47,12 +60,6 @@ public class MainMessages extends AppCompatActivity {
     private static final int CLASSIFY_BY_ADDRESS_ONLY = 112;
 
     private static int SHOWING_SPAM_OR_HAM = Message.NOT_SPAM;
-
-    private static final int TOOLBAR_LANGUAGES = 201;
-    private static final int TOOLBAR_SPAM = 202;
-    private static final int TOOLBAR_NON_SPAM = 203;
-    private static final int TOOLBAR_BLACKLIST = 204;
-    private static final int TOOLBAR_WHITELIST = 205;
 
     ListView listView;
     ArrayAdapter<String> arrayAdapter;
@@ -86,18 +93,11 @@ public class MainMessages extends AppCompatActivity {
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
+        handle_navigation_view();
+
         while (ContextCompat.checkSelfPermission(getBaseContext(), "android.permission.READ_SMS") != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(MainMessages.this, new String[]{"android.permission.READ_SMS"}, REQUEST_CODE_ASK_PERMISSIONS);
         }
-//        if (ContextCompat.checkSelfPermission(getBaseContext(), "android.permission.RECEIVE_SMS") != PackageManager.PERMISSION_GRANTED) {
-//            ActivityCompat.requestPermissions(MainMessages.this, new String[]{"android.permission.RECEIVE_SMS_SMS"}, REQUEST_CODE_ASK_PERMISSIONS);
-//        }
-//        if (ContextCompat.checkSelfPermission(getBaseContext(), "android.permission.SEND_SMS") != PackageManager.PERMISSION_GRANTED) {
-//            ActivityCompat.requestPermissions(MainMessages.this, new String[]{"android.permission.SEND_SMS"}, REQUEST_CODE_ASK_PERMISSIONS);
-//        }
-
-        listView = (ListView) findViewById(R.id.all_messages);
-        registerForContextMenu(listView);
 
         init();
 
@@ -107,8 +107,50 @@ public class MainMessages extends AppCompatActivity {
 
         classifier = new Classifier(this);
 
+        attach_listener_on_listview();
+
 //        read_classified_messages();
         readMessages();
+    }
+
+    private void attach_listener_on_listview() {
+
+        listView = (ListView) findViewById(R.id.all_messages);
+        registerForContextMenu(listView);
+
+        load_message_in_new_activity();
+    }
+
+    private void load_message_in_new_activity() {
+
+
+
+        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, final int position, long id) {
+
+                int pos = parent.getPositionForView(view);
+                Message message = null;
+
+                if(SHOWING_SPAM_OR_HAM == Message.SPAM){
+                    message = id_to_messages.get(id_list_spam.get(pos));
+                }
+                else if(SHOWING_SPAM_OR_HAM == Message.NOT_SPAM){
+                    message = id_to_messages.get(id_list_non_spam.get(pos));
+                }
+
+                //Toast.makeText(getApplicationContext(), message ,Toast.LENGTH_SHORT).show();
+
+                Intent i = new Intent(getApplicationContext(), Message_Display.class);
+//                Bundle b = new Bundle();
+//                b.putParcelable("message", (Parcelable) message);
+                i.putExtra("key" , message.body +"`"+ message.date +"`"+ message.address);
+                startActivity(i);
+
+
+            }
+        });
+
     }
 
     private void classify(int MODE) {
@@ -331,63 +373,8 @@ public class MainMessages extends AppCompatActivity {
         }
     }
 
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
 
-        switch (item.getItemId()){
-            case TOOLBAR_LANGUAGES:{
-                Intent intent = new Intent(this, Languages.class);
-                startActivity(intent);
-            }
-            break;
-            case TOOLBAR_BLACKLIST:{
-                Intent intent = new Intent(this, Blacklist.class);
-                startActivity(intent);
-            }
-            break;
-            case TOOLBAR_WHITELIST:{
-                Intent intent = new Intent(this, Whitelist.class);
-                startActivity(intent);
-            }
-            break;
-            case TOOLBAR_NON_SPAM:{
-                SHOWING_SPAM_OR_HAM = Message.NOT_SPAM;
-                invalidateOptionsMenu();
-                fill_the_layout_with_messages();
-            }
-            break;
-            case TOOLBAR_SPAM:{
-                SHOWING_SPAM_OR_HAM = Message.SPAM;
-                invalidateOptionsMenu();
-                fill_the_layout_with_messages();
-            }
-            break;
-        }
-        return super.onOptionsItemSelected(item);
-    }
 
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-
-        if(SHOWING_SPAM_OR_HAM == Message.SPAM) {
-            menu.add(0, TOOLBAR_NON_SPAM, 0, "Inbox");
-            menu.getItem(0).setIcon(R.drawable.ic_inbox_black_24dp);
-        }
-        else{
-            menu.add(0, TOOLBAR_SPAM, 0, "Spam");
-            menu.getItem(0).setIcon(R.drawable.ic_report_black_24dp);
-        }
-
-        menu.add(0, TOOLBAR_LANGUAGES, 1, "Languages");
-        menu.getItem(1).setIcon(R.drawable.ic_settings_black_24dp);
-
-        menu.add(0, TOOLBAR_BLACKLIST, 2, "Blacklist");
-        menu.add(0, TOOLBAR_WHITELIST, 3, "Whitelist");
-
-//        MenuInflater inflater = getMenuInflater();
-//        inflater.inflate(R.menu.toolbar_menu, menu);;
-        return true;
-    }
 
     @Override
     protected void onStop() {
@@ -428,4 +415,106 @@ public class MainMessages extends AppCompatActivity {
         Log.e("Error", "writing to file ends");
 
     }
+
+    private void handle_navigation_view() {
+
+        //Initializing NavigationView
+        navigationView = (NavigationView) findViewById(R.id.navigation_view);
+
+        navigationView.setNavigationItemSelectedListener(new NavigationView.OnNavigationItemSelectedListener(){
+            @Override
+            public boolean onNavigationItemSelected(@NonNull MenuItem menuItem) {
+
+                if(menuItem.isChecked()) {
+                    menuItem.setChecked(false);
+                }
+                else {
+                    menuItem.setChecked(true);
+                }
+
+                //Closing drawer on item click
+                drawerLayout.closeDrawers();
+
+                switch (menuItem.getItemId()){
+                    case R.id.TOOLBAR_LANGUAGES:{
+                        Intent intent = new Intent(getApplicationContext(), Languages.class);
+                        startActivity(intent);
+                        return true;
+                    }
+
+                    case R.id.TOOLBAR_BLACKLIST:{
+                        Intent intent = new Intent(getApplicationContext(), Blacklist.class);
+                        startActivity(intent);
+                        return true;
+                    }
+
+                    case R.id.TOOLBAR_WHITELIST:{
+                        Intent intent = new Intent(getApplicationContext(), Whitelist.class);
+                        startActivity(intent);
+                        return true;
+                    }
+
+                    case R.id.TOOLBAR_NON_SPAM:{
+                        SHOWING_SPAM_OR_HAM = Message.NOT_SPAM;
+                        invalidateOptionsMenu();
+                        fill_the_layout_with_messages();
+                        return true;
+                    }
+
+                    case R.id.TOOLBAR_SPAM:{
+                        SHOWING_SPAM_OR_HAM = Message.SPAM;
+                        invalidateOptionsMenu();
+                        fill_the_layout_with_messages();
+                        return true;
+                    }
+                    default:
+                        Toast.makeText(getApplicationContext(),"Somethings Wrong",Toast.LENGTH_SHORT).show();
+                        return true;
+
+                }
+
+
+            }
+        });
+
+
+        drawerLayout = (DrawerLayout) findViewById(R.id.drawer);
+        actionBarDrawerToggle = new ActionBarDrawerToggle(this,drawerLayout,toolbar,R.string.open, R.string.close){
+
+            @Override
+            public void onDrawerClosed(View drawerView) {
+                // Code here will be triggered once the drawer closes as we dont want anything to happen so we leave this blank
+                super.onDrawerClosed(drawerView);
+            }
+
+            @Override
+            public void onDrawerOpened(View drawerView) {
+                // Code here will be triggered once the drawer open as we dont want anything to happen so we leave this blank
+
+                super.onDrawerOpened(drawerView);
+            }
+
+
+        };
+
+        //Setting the actionbarToggle to drawer layout
+        //drawerLayout.setDrawerListener(actionBarDrawerToggle);
+        drawerLayout.addDrawerListener(actionBarDrawerToggle);
+
+        //calling sync state is necessay or else your hamburger icon wont show up
+        actionBarDrawerToggle.syncState();
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+       // getSupportActionBar().setHomeButtonEnabled(true);
+        // getSupportActionBar().setHomeAsUpIndicator(R.drawable.ic_home_black_24dp);
+
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        if (actionBarDrawerToggle.onOptionsItemSelected(item)) {
+            return true;
+        }
+        return super.onOptionsItemSelected(item);
+    }
+
 }

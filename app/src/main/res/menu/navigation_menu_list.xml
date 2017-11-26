@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <item android:id="@+id/TOOLBAR_NON_SPAM" android:title="Inbox" android:icon="@drawable/ic_block_black_24dp"/>
+    <item android:id="@+id/TOOLBAR_SPAM" android:title="Spam" android:icon="@drawable/ic_home_black_24dp"/>
+    <item android:id="@+id/TOOLBAR_BLACKLIST" android:title="BlackList" android:icon="@drawable/ic_perm_phone_msg_black_24dp"/>
+    <item android:id="@+id/TOOLBAR_WHITELIST" android:title="WhiteList" android:icon="@drawable/ic_perm_phone_msg_black_24dp"/>
+    <item android:id="@+id/TOOLBAR_LANGUAGES" android:title="Set Languages" android:icon="@drawable/ic_block_black_24dp"/>
+
+
+</menu>
