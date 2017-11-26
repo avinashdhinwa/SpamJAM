@@ -218,21 +218,16 @@ public class MessageCleaning {
         if (previous.length() > 1) {
             if (letter == 1 && number == 0 && dialer == 0) {
                 result += previous + " ";
-                pPrevious = previous;
             } else if (letter == 1 && number == 1 && dialer == 0 && !pPrevious.equals("alphanumeric")) {
                 result += "alphanumeric ";
-                pPrevious = "alphanumeric";
             } else if (letter == 0 && number == 1 && dialer == 0 && !pPrevious.equals("digit")) {
                 result += "digit ";
-                pPrevious = "digit";
 
             } else if (letter == 0 && number == 1 && dialer == 1 && !pPrevious.equals("dialer")) {
                 result += "dialer ";
-                pPrevious = "dialer";
 
             } else {
                 result += "typer ";
-                pPrevious = "typer";
             }
         }
 
@@ -317,6 +312,26 @@ public class MessageCleaning {
             }
 
 
+        }
+
+
+        if (current.length() > 0) {
+            if (hindiFlag == 1 && engFlag == 0 && numFlag == 0) {
+                result += current + " ";
+            } else if (hindiFlag == 0 && engFlag == 1 && numFlag == 0 && !previous.equals("english")) {
+                result += "english ";
+            } else if (hindiFlag == 0 && engFlag == 0 && numFlag == 1 && !previous.equals("number")) {
+                result += "number ";
+
+            } else if (hindiFlag == 0 && engFlag == 1 && numFlag == 1 && !previous.equals("alphaNumber")) {
+                result += "alphaNumber ";
+
+            } else if (hindiFlag == 1 && engFlag == 1 && !previous.equals("mix")) {
+                result += "mix ";
+
+            } else if (hindiFlag == 1 && engFlag == 0 && numFlag == 1 && !previous.equals("hindiWithNumber")) {
+                result += "hindiWithNumber ";
+            }
         }
 
         System.out.println("changed: " + result.trim());
