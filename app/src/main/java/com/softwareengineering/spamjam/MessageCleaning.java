@@ -12,8 +12,13 @@ import java.util.regex.Pattern;
 
 public class MessageCleaning {
 
-    // method to return list of stopword of english
+    // method to return list of stops word of english
+
+    /**
+     * @return hash table of stop words
+     */
     public static HashSet<String> stopWordsSet() {
+        // string array of stop words
         String stopWords[] = {"a", "able", "and", "about", "above", "according", "accordingly", "across", "actually", "after", "afterwards",
                 "again", "against", "all", "allow", "allows", "almost", "alone", "along", "already", "also", "although", "always", "am", "among",
                 "amongst", "an", "and", "another", "any", "anybody", "anyhow", "anyone", "anything", "anyway", "anyways", "anywhere", "apart",
@@ -51,32 +56,39 @@ public class MessageCleaning {
                 "whither", "who", "whoever", "whole", "whom", "whose", "why", "will", "willing", "wish", "with", "within", "without", "wonder", "would", "would",
                 "x", "y", "yes", "yet", "you", "your", "yours", "yourself", "yourselves", "z", "zero", "-", "_", "+", ".", "&", "|"};
 
-        // String [] s1 = {"a","an","the","of","on","i","you","we","up","upom"};
-
+        // convert list in array and return
         return new HashSet<String>(Arrays.asList(stopWords));
     }
 
     // method to clean the given word
+    /**
+     *
+     * @param input message string
+     * @return cleaned message
+     */
     public static String wordCleaning(String input) {
         input = input.trim();
-        String result = "";
+        String result = ""; // output string
 
+        // check if current word is email id
         String regex = "^[a-zA-Z0-9_!#$%&'*+/=?`{|}~^.-]+@[a-zA-Z0-9.-]+$";
         Pattern pattern = Pattern.compile(regex);
 
         Matcher matcher = pattern.matcher(input);
 
-
+        // remove special character from last
         if (input.endsWith("?") || input.endsWith(".") || input.endsWith("!") || input.endsWith(":") || input.endsWith(",") ||
                 input.endsWith("'") || input.endsWith(")")) {
             input = input.substring(0, input.length() - 1);
         }
 
+        // remove special character from last
         if (input.startsWith("#") || input.startsWith("(") || input.startsWith(")") || input.startsWith("+") || input.startsWith(":") ||
                 input.startsWith("?") || input.startsWith("@") || input.startsWith("~")) {
             input = input.substring(1, input.length());
         }
 
+        // string start with http or https then convert it weblink
         if (input.startsWith("http://") || input.startsWith("https://") || input.startsWith("www.")) {
             result = "weblink";
         } else if (matcher.matches()) {
@@ -99,11 +111,11 @@ public class MessageCleaning {
                 }
             }
 
-
+            // convert all number in number
             if (f1 == 1 && f2 == 0 && f3 == 0) {
                 result = "number";
             } else if (f1 == 1 && f2 == 1 && f3 == 0) {
-                result = "alphanumber";
+                result = "alphanumber"; // convert all alphanumber in same
             } else {
                 result = input;
             }
@@ -113,13 +125,18 @@ public class MessageCleaning {
     }
 
     // method to clean the message
+    /**
+     *
+     * @param message => given message
+     * @return => return clean message
+     */
     public static String newWordCleaning(String message) {
         StringBuilder result = new StringBuilder();
-        String previous = "";
-        String pPrevious = "";
-        int letter = 0;
-        int number = 0;
-        int dialer = 0;
+        String previous = ""; // current word of message
+        String pPrevious = ""; // previous word of message
+        int letter = 0; // flag for a to z
+        int number = 0; // flag for 0 to 9
+        int dialer = 0; // flag for other
         for (int i = 0; i < message.length(); i++) {
             if (message.charAt(i) >= 'a' && message.charAt(i) <= 'z') {
                 previous += message.charAt(i);
@@ -133,21 +150,21 @@ public class MessageCleaning {
             } else {
                 if (previous.length() > 1) {
                     if (letter == 1 && number == 0 && dialer == 0) {
-                        result.append(previous + " ");
+                        result.append(previous + " "); // add same if only a to z
                         pPrevious = previous;
                     } else if (letter == 1 && number == 1 && dialer == 0 && !pPrevious.equals("alphanumeric")) {
-                        result.append("alphanumeric ");
+                        result.append("alphanumeric "); // add alphanumeric for alpha numeric
                         pPrevious = "alphanumeric";
                     } else if (letter == 0 && number == 1 && dialer == 0 && !pPrevious.equals("digit")) {
-                        result.append("digit ");
+                        result.append("digit "); // add digit for all digits
                         pPrevious = "digit";
 
                     } else if (letter == 0 && number == 1 && dialer == 1 && !pPrevious.equals("dialer")) {
-                        result.append("dialer ");
+                        result.append("dialer "); // add dialer for number and some special character
                         pPrevious = "dialer";
 
                     } else {
-                        result.append("typer ");
+                        result.append("typer "); // add typer for all others
                         pPrevious = "typer";
                     }
                 }
@@ -158,6 +175,7 @@ public class MessageCleaning {
             }
 
         }
+        // do same outside the for loop
         if (previous.length() > 1) {
             if (letter == 1 && number == 0 && dialer == 0) {
                 result.append(previous + " ");
@@ -175,43 +193,54 @@ public class MessageCleaning {
         }
 
 
-        return result.toString().trim();//changeInBaseForm(result.trim()).trim();
+        return result.toString().trim();
     }
 
     // method to clean the message
+    /**
+     *
+     * @param message => given message
+     * @return => return clean message
+     */
     public static String messageCleaning(String message) {
-        String result = "";
-        String[] spliter = message.toLowerCase().split("\\s+");
+        String result = ""; // output string
+        String[] spliter = message.toLowerCase().split("\\s+"); // split the string based on the white spaces
 
-        HashSet<String> stopSet = stopWordsSet();
+        HashSet<String> stopSet = stopWordsSet(); // hash table of stop words
 
         for (int i = 0; i < spliter.length; i++) {
             if (!stopSet.contains(spliter[i].trim())) {
                 String cleanWord = wordCleaning(spliter[i]);
                 if (cleanWord.length() > 2) {
-                    result += cleanWord + " ";
+                    result += cleanWord + " "; // add cleanWOrd only if length is grater than 2
                 }
             }
         }
-        return result.trim();
+        return result.trim(); // return output
     }
 
 
     // method to clean the hindi message written in hindi
+
+    /**
+     *
+     * @param message given hindi message
+     * @return cleaned message
+     */
     public static String HindiMessageCleaning(String message) {
-        System.out.println("original = " + message);
-        StringBuilder result = new StringBuilder();
-        String current = "";
-        int engFlag = 0;
-        int hindiFlag = 0;
-        int numFlag = 0;
-        String previous = "";
+        StringBuilder result = new StringBuilder(); // output string
+        String current = ""; // current string
+        int engFlag = 0; // Flag for english
+        int hindiFlag = 0; // flag for hindi
+        int numFlag = 0; // flag for number
+        String previous = ""; // previous string
+
         for (int i = 0; i < message.length(); i++) {
             if (message.charAt(i) >= 2304 && message.charAt(i) < 2431) {
-                current += message.charAt(i);
+                current += message.charAt(i); // hindi flags
                 hindiFlag = 1;
             } else if (message.charAt(i) >= 'a' && message.charAt(i) <= 'z') {
-                current += message.charAt(i);
+                current += message.charAt(i); // english flags
                 engFlag = 1;
 
             } else if ((message.charAt(i) >= '0' && message.charAt(i) <= '9') || message.charAt(i) == '#' ||
@@ -221,25 +250,25 @@ public class MessageCleaning {
 
             } else if (current.length() > 0) {
                 if (hindiFlag == 1 && engFlag == 0 && numFlag == 0) {
-                    result.append(current + " ");
+                    result.append(current + " "); // add directly if only hindi string
                     previous = current;
                 } else if (hindiFlag == 0 && engFlag == 1 && numFlag == 0 && !previous.equals("english")) {
-                    result.append("english ");
+                    result.append("english "); // add english for all english words
                     previous = "english";
                 } else if (hindiFlag == 0 && engFlag == 0 && numFlag == 1 && !previous.equals("number")) {
-                    result.append("number ");
+                    result.append("number "); // add number for all 0-9 words
                     previous = "number";
 
                 } else if (hindiFlag == 0 && engFlag == 1 && numFlag == 1 && !previous.equals("alphaNumber")) {
-                    result.append("alphaNumber ");
+                    result.append("alphaNumber "); // add alphaNumber for all alpha number
                     previous = "alphaNumber";
 
                 } else if (hindiFlag == 1 && engFlag == 1 && !previous.equals("mix")) {
-                    result.append("mix ");
+                    result.append("mix "); // add mix if all present
                     previous = "mix";
 
                 } else if (hindiFlag == 1 && engFlag == 0 && numFlag == 1 && !previous.equals("hindiWithNumber")) {
-                    result.append("hindiWithNumber ");
+                    result.append("hindiWithNumber "); // add hindiWithNumber for all number with hindi words
                     previous = "hindiWithNumber";
 
                 }
@@ -252,7 +281,7 @@ public class MessageCleaning {
 
         }
 
-
+        // do something for outer the loop
         if (current.length() > 0) {
             if (hindiFlag == 1 && engFlag == 0 && numFlag == 0) {
                 result.append(current + " ");

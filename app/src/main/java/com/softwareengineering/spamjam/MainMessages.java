@@ -402,11 +402,11 @@ public class MainMessages extends AppCompatActivity {
         } catch (IOException e) {
             Log.e("Exception", "File write failed: " + e.toString());
         }
-        try {
+        /*try {
             classifier.nbc_classifier.saveClassifier();
         } catch (IOException e) {
             e.printStackTrace();
-        }
+        }*/
         Log.e("Error", "writing to file ends");
 
     }

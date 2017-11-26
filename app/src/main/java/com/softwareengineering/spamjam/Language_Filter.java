@@ -12,7 +12,9 @@ public class Language_Filter {
     static String PUNJABI = "Punjabi";
     static String GUJARATI = "Gujarati";
     static String MALAYALAM = "Malayalam";
-
+    /**
+     * list of languages
+     */
     public static ArrayList<String> languages =  new ArrayList<>(Arrays.asList(ENGLISH,
                                                                                     HINDI,
                                                                                     PUNJABI,
@@ -25,15 +27,24 @@ public class Language_Filter {
 
     }
 
+    /**
+     * method will return language of given given message
+     *
+     * @param Msg given message string
+     * @return language of message
+     */
     public static String predictor(String Msg){
-        int sum=0;
+        int sum = 0;
+        // put count for all language 0 initially
         map.put("Hindi",0);
         map.put("English",0);
         map.put("Gujarati",0);
         map.put("Punjabi",0);
-        map.put("Malayalam",0);
-        for(int i=0;i<Msg.length();i++){
+        map.put("Malayalam", 0);
+        // go through all message character
+        for(int i = 0; i<Msg.length(); i++) {
 
+            // if it is white space skip it otherwise add in corresponding language
             if ((int) Msg.charAt(i) == 32) {
                 continue;
             } else if ((int) Msg.charAt(i) >= 0 && (int) Msg.charAt(i) < 127) {
@@ -49,10 +60,10 @@ public class Language_Filter {
             }
         }
 
+        // return the max value language s
         int max=0;
         String lang="";
-        for (Map.Entry<String, Integer> entry : map.entrySet())
-        {
+        for (Map.Entry<String, Integer> entry : map.entrySet()) {
             int x = entry.getValue();
             if(x>max) {
                 max = x;
