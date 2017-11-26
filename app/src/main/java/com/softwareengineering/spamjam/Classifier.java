@@ -58,6 +58,7 @@ public class Classifier {
             return Message.SPAM;
         }
 
+//        return Message.NOT_SPAM;
         return nbc_classifier.classify(message);
     }
 
@@ -152,6 +153,7 @@ public class Classifier {
         if(acceptedLanguages.size() == 0){
             ContentValues contentValues = new ContentValues();
             contentValues.put("Language", Language_Filter.ENGLISH);
+            mydatabase.insert("languages", null, contentValues);
             contentValues.put("Language", Language_Filter.HINDI);
             mydatabase.insert("languages", null, contentValues);
             acceptedLanguages.add(Language_Filter.ENGLISH);
