@@ -30,6 +30,9 @@ public class Whitelist extends AppCompatActivity {
         load_whitelist();
     }
 
+    /**
+     * Loads the contacts which are marked as whitelisted
+     */
     void load_whitelist(){
         List<String> whiteList = new ArrayList<>();
 
@@ -54,6 +57,9 @@ public class Whitelist extends AppCompatActivity {
         }
     }
 
+    /**
+     * Deletes entries in whitelist which are unmarked
+     */
     @Override
     protected void onDestroy() {
 

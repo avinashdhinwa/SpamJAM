@@ -30,6 +30,9 @@ public class Blacklist extends AppCompatActivity {
         load_blacklist();
     }
 
+    /**
+     * Loads the contacts which are marked as blacklisted
+     */
     void load_blacklist(){
         List<String> blackList = new ArrayList<>();
 
@@ -46,6 +49,7 @@ public class Blacklist extends AppCompatActivity {
             resultSet.moveToNext();
         }
 
+        // Display the contacts blacklisted
         for(int i = 0; i < blackList.size(); i++){
             CheckBox checkBox = new CheckBox(this);
             checkBox.setText(blackList.get(i));
@@ -54,6 +58,9 @@ public class Blacklist extends AppCompatActivity {
         }
     }
 
+    /**
+     * Deletes entries in blacklist which are unmarked
+     */
     @Override
     protected void onDestroy() {
 

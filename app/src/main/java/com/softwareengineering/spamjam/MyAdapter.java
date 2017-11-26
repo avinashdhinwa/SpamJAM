@@ -22,10 +22,9 @@ import java.util.List;
 
 public class MyAdapter extends ArrayAdapter {
 
+    private static LayoutInflater inflater = null;
     HashMap<Integer, Message> id_to_messages;
     List<Integer> id_list;
-
-    private static LayoutInflater inflater=null;
 
     public MyAdapter(@NonNull Activity activity, @LayoutRes int resource, @NonNull List<Integer> id_list, HashMap<Integer, Message> id_to_messages) {
         super(activity, resource, id_list);
@@ -34,6 +33,14 @@ public class MyAdapter extends ArrayAdapter {
         inflater = (LayoutInflater)activity.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
     }
 
+    /**
+     * Generates view to be displayed in list view using message's sender, body and date
+     *
+     * @param position    position in list view
+     * @param convertView
+     * @param parent
+     * @return returns generated view
+     */
     @NonNull
     @Override
     public View getView(int position, @Nullable View convertView, @NonNull ViewGroup parent) {

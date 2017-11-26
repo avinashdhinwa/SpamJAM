@@ -17,6 +17,12 @@ public class SmsBroadcastReceiver extends BroadcastReceiver {
     public SmsBroadcastReceiver() {
     }
 
+    /**
+     * Sends new message to the 'MainMessages' activity
+     *
+     * @param context
+     * @param intent
+     */
     @Override
     public void onReceive(Context context, Intent intent) {
 

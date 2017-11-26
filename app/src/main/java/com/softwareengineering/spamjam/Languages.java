@@ -30,6 +30,11 @@ public class Languages extends AppCompatActivity {
         load_languages();
     }
 
+    /**
+     * Loads languages selected by user for displaying messages, messages in rest all
+     * languages will be marked as spam
+     * Hindi and English are marked by default
+     */
     void load_languages(){
         ArrayList<String> languages = Language_Filter.languages;
         HashMap<String, Integer> languages_selected = new HashMap<>();
@@ -57,6 +62,9 @@ public class Languages extends AppCompatActivity {
         }
     }
 
+    /**
+     * Adds and removes languages in which the user needs messages
+     */
     @Override
     protected void onDestroy() {
 
@@ -66,8 +74,7 @@ public class Languages extends AppCompatActivity {
             String lang = (String) checkBox.getText();
             if(checkBox.isChecked()) {
                 mydatabase.execSQL("INSERT INTO languages VALUES (\"" + lang + "\");");
-            }
-            else{
+            } else {
                 mydatabase.execSQL("DELETE FROM languages WHERE Language=\"" + lang + "\";");
             }
         }

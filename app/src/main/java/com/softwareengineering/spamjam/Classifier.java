@@ -67,7 +67,6 @@ public class Classifier {
             return Message.SPAM;
         }
 
-//        return Message.NOT_SPAM;
         return nbc_classifier.classify(message);
     }
 

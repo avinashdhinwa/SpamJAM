@@ -146,7 +146,7 @@ public class MainMessages extends AppCompatActivity {
 
         if (MODE == RETRAIN) {
             try {
-                classifier.retrain_the_model(id_to_messages, spam_messages_training, ham_messages_training);
+                classifier.retrain_the_model(spam_messages_training, ham_messages_training);
             } catch (IOException e) {
                 e.printStackTrace();
             }
