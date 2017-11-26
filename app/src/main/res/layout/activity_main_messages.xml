@@ -31,8 +31,8 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:clickable="true"
-                android:divider="#b5b5b5"
-                android:dividerHeight="1dp">
+                android:divider="@null"
+                android:dividerHeight="0dp">
 
             </ListView>
 
