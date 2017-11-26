@@ -5,8 +5,6 @@ import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
-import android.os.Parcelable;
-import android.provider.SyncStateContract;
 import android.support.annotation.NonNull;
 import android.support.design.widget.NavigationView;
 import android.support.v4.app.ActivityCompat;
@@ -34,7 +32,6 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -43,11 +40,6 @@ import java.util.Scanner;
 import java.util.Set;
 
 public class MainMessages extends AppCompatActivity {
-
-    private Toolbar toolbar;
-    private NavigationView navigationView;
-    private DrawerLayout drawerLayout;
-    ActionBarDrawerToggle actionBarDrawerToggle;
 
     private static final int REQUEST_CODE_ASK_PERMISSIONS = 123;
     private static final int HARDCODE_AS_SPAM = 111;
@@ -58,26 +50,23 @@ public class MainMessages extends AppCompatActivity {
     private static final int WHITELIST_CONTACT = 116;
     private static final int RETRAIN = 111;
     private static final int CLASSIFY_BY_ADDRESS_ONLY = 112;
-
-    private static int SHOWING_SPAM_OR_HAM = Message.NOT_SPAM;
-
-    ListView listView;
-    ArrayAdapter<String> arrayAdapter;
-
-    SmsBroadcastReceiver smsBroadcastReceiver;
     static Classifier classifier;
-
     static HashMap<Integer, Message> id_to_messages = new HashMap<>();
-
     static HashMap<Integer, String> spam_messages_training = new HashMap<>();
     static HashMap<Integer, String> ham_messages_training = new HashMap<>();
     static HashMap<Integer, String> messages_dataSet = new HashMap<>();
-
     static HashMap<Integer, Integer> messages_classified = new HashMap<>();
-
     static List<Integer> id_list = new ArrayList<>();
     static List<Integer> id_list_spam = new ArrayList<>();
     static List<Integer> id_list_non_spam = new ArrayList<>();
+    private static int SHOWING_SPAM_OR_HAM = Message.NOT_SPAM;
+    ActionBarDrawerToggle actionBarDrawerToggle;
+    ListView listView;
+    ArrayAdapter<String> arrayAdapter;
+    SmsBroadcastReceiver smsBroadcastReceiver;
+    private Toolbar toolbar;
+    private NavigationView navigationView;
+    private DrawerLayout drawerLayout;
 
     @Override
     protected void onStart() {
@@ -124,7 +113,6 @@ public class MainMessages extends AppCompatActivity {
     private void load_message_in_new_activity() {
 
 
-
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, final int position, long id) {
@@ -132,10 +120,9 @@ public class MainMessages extends AppCompatActivity {
                 int pos = parent.getPositionForView(view);
                 Message message = null;
 
-                if(SHOWING_SPAM_OR_HAM == Message.SPAM){
+                if (SHOWING_SPAM_OR_HAM == Message.SPAM) {
                     message = id_to_messages.get(id_list_spam.get(pos));
-                }
-                else if(SHOWING_SPAM_OR_HAM == Message.NOT_SPAM){
+                } else if (SHOWING_SPAM_OR_HAM == Message.NOT_SPAM) {
                     message = id_to_messages.get(id_list_non_spam.get(pos));
                 }
 
@@ -144,7 +131,7 @@ public class MainMessages extends AppCompatActivity {
                 Intent i = new Intent(getApplicationContext(), Message_Display.class);
 //                Bundle b = new Bundle();
 //                b.putParcelable("message", (Parcelable) message);
-                i.putExtra("key" , message.body +"`"+ message.date +"`"+ message.address);
+                i.putExtra("key", message.body + "`" + message.date + "`" + message.address);
                 startActivity(i);
 
 
@@ -157,7 +144,7 @@ public class MainMessages extends AppCompatActivity {
 
         Set<Integer> keys = id_to_messages.keySet();
 
-        if(MODE == RETRAIN) {
+        if (MODE == RETRAIN) {
             try {
                 classifier.retrain_the_model(id_to_messages, spam_messages_training, ham_messages_training);
             } catch (IOException e) {
@@ -374,8 +361,6 @@ public class MainMessages extends AppCompatActivity {
     }
 
 
-
-
     @Override
     protected void onStop() {
         EventBus.getDefault().unregister(this);
@@ -421,54 +406,53 @@ public class MainMessages extends AppCompatActivity {
         //Initializing NavigationView
         navigationView = (NavigationView) findViewById(R.id.navigation_view);
 
-        navigationView.setNavigationItemSelectedListener(new NavigationView.OnNavigationItemSelectedListener(){
+        navigationView.setNavigationItemSelectedListener(new NavigationView.OnNavigationItemSelectedListener() {
             @Override
             public boolean onNavigationItemSelected(@NonNull MenuItem menuItem) {
 
-                if(menuItem.isChecked()) {
+                if (menuItem.isChecked()) {
                     menuItem.setChecked(false);
-                }
-                else {
+                } else {
                     menuItem.setChecked(true);
                 }
 
                 //Closing drawer on item click
                 drawerLayout.closeDrawers();
 
-                switch (menuItem.getItemId()){
-                    case R.id.TOOLBAR_LANGUAGES:{
+                switch (menuItem.getItemId()) {
+                    case R.id.TOOLBAR_LANGUAGES: {
                         Intent intent = new Intent(getApplicationContext(), Languages.class);
                         startActivity(intent);
                         return true;
                     }
 
-                    case R.id.TOOLBAR_BLACKLIST:{
+                    case R.id.TOOLBAR_BLACKLIST: {
                         Intent intent = new Intent(getApplicationContext(), Blacklist.class);
                         startActivity(intent);
                         return true;
                     }
 
-                    case R.id.TOOLBAR_WHITELIST:{
+                    case R.id.TOOLBAR_WHITELIST: {
                         Intent intent = new Intent(getApplicationContext(), Whitelist.class);
                         startActivity(intent);
                         return true;
                     }
 
-                    case R.id.TOOLBAR_NON_SPAM:{
+                    case R.id.TOOLBAR_NON_SPAM: {
                         SHOWING_SPAM_OR_HAM = Message.NOT_SPAM;
                         invalidateOptionsMenu();
                         fill_the_layout_with_messages();
                         return true;
                     }
 
-                    case R.id.TOOLBAR_SPAM:{
+                    case R.id.TOOLBAR_SPAM: {
                         SHOWING_SPAM_OR_HAM = Message.SPAM;
                         invalidateOptionsMenu();
                         fill_the_layout_with_messages();
                         return true;
                     }
                     default:
-                        Toast.makeText(getApplicationContext(),"Somethings Wrong",Toast.LENGTH_SHORT).show();
+                        Toast.makeText(getApplicationContext(), "Somethings Wrong", Toast.LENGTH_SHORT).show();
                         return true;
 
                 }
@@ -479,7 +463,7 @@ public class MainMessages extends AppCompatActivity {
 
 
         drawerLayout = (DrawerLayout) findViewById(R.id.drawer);
-        actionBarDrawerToggle = new ActionBarDrawerToggle(this,drawerLayout,toolbar,R.string.open, R.string.close){
+        actionBarDrawerToggle = new ActionBarDrawerToggle(this, drawerLayout, toolbar, R.string.open, R.string.close) {
 
             @Override
             public void onDrawerClosed(View drawerView) {
@@ -504,7 +488,7 @@ public class MainMessages extends AppCompatActivity {
         //calling sync state is necessay or else your hamburger icon wont show up
         actionBarDrawerToggle.syncState();
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-       // getSupportActionBar().setHomeButtonEnabled(true);
+        // getSupportActionBar().setHomeButtonEnabled(true);
         // getSupportActionBar().setHomeAsUpIndicator(R.drawable.ic_home_black_24dp);
 
     }
