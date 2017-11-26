@@ -188,7 +188,7 @@ public class MessageCleaning {
                 previous += message.charAt(i);
                 dialer = 1;
             } else {
-                if (previous.length() > 1 && !stopWords.contains(previous)) {
+                if (previous.length() > 1) {
                     if (letter == 1 && number == 0 && dialer == 0) {
                         result += previous + " ";
                         pPrevious = previous;
@@ -215,9 +215,24 @@ public class MessageCleaning {
             }
 
         }
+        if (previous.length() > 1) {
+            if (letter == 1 && number == 0 && dialer == 0) {
+                result += previous + " ";
+            } else if (letter == 1 && number == 1 && dialer == 0 && !pPrevious.equals("alphanumeric")) {
+                result += "alphanumeric ";
+            } else if (letter == 0 && number == 1 && dialer == 0 && !pPrevious.equals("digit")) {
+                result += "digit ";
+
+            } else if (letter == 0 && number == 1 && dialer == 1 && !pPrevious.equals("dialer")) {
+                result += "dialer ";
+
+            } else {
+                result += "typer ";
+            }
+        }
 
 
-        return result.trim();
+        return result.trim();//changeInBaseForm(result.trim()).trim();
     }
 
     // to clean the message
@@ -246,39 +261,50 @@ public class MessageCleaning {
 	   /* cons(i) is true <=> b[i] is a consonant. */
 
     public static String HindiMessageCleaning(String message) {
+        System.out.println("original = " + message);
         String result = "";
         String current = "";
         int engFlag = 0;
         int hindiFlag = 0;
         int numFlag = 0;
+        String previous = "";
         for (int i = 0; i < message.length(); i++) {
-            if (message.charAt(i) >= 2309 && message.charAt(i) < 2431) {
+            if (message.charAt(i) >= 2304 && message.charAt(i) < 2431) {
                 current += message.charAt(i);
                 hindiFlag = 1;
             } else if (message.charAt(i) >= 'a' && message.charAt(i) <= 'z') {
                 current += message.charAt(i);
                 engFlag = 1;
 
-            } else if ((message.charAt(i) >= '0' && message.charAt(i) <= '0') ||
-                    message.charAt(i) == '+' || message.charAt(i) == '.' || message.charAt(i) == '%') {
+            } else if ((message.charAt(i) >= '0' && message.charAt(i) <= '9') || message.charAt(i) == '#' ||
+                    message.charAt(i) == '+' || message.charAt(i) == '.' || message.charAt(i) == '%' || message.charAt(i) == '*') {
                 current += message.charAt(i);
                 numFlag = 1;
 
             } else if (current.length() > 0) {
                 if (hindiFlag == 1 && engFlag == 0 && numFlag == 0) {
                     result += current + " ";
-                } else if (hindiFlag == 0 && engFlag == 1 && numFlag == 0) {
+                    previous = current;
+                } else if (hindiFlag == 0 && engFlag == 1 && numFlag == 0 && !previous.equals("english")) {
                     result += "english ";
-                } else if (hindiFlag == 0 && engFlag == 0 && numFlag == 1) {
+                    previous = "english";
+                } else if (hindiFlag == 0 && engFlag == 0 && numFlag == 1 && !previous.equals("number")) {
                     result += "number ";
-                } else if (hindiFlag == 0 && engFlag == 1 && numFlag == 1) {
-                    result += "alphaNumber ";
-                } else if (hindiFlag == 1 && engFlag == 1) {
-                    result += "mix ";
-                } else if (hindiFlag == 1 && engFlag == 0 && numFlag == 1) {
-                    result += "hindiWithNumber ";
-                }
+                    previous = "number";
 
+                } else if (hindiFlag == 0 && engFlag == 1 && numFlag == 1 && !previous.equals("alphaNumber")) {
+                    result += "alphaNumber ";
+                    previous = "alphaNumber";
+
+                } else if (hindiFlag == 1 && engFlag == 1 && !previous.equals("mix")) {
+                    result += "mix ";
+                    previous = "mix";
+
+                } else if (hindiFlag == 1 && engFlag == 0 && numFlag == 1 && !previous.equals("hindiWithNumber")) {
+                    result += "hindiWithNumber ";
+                    previous = "hindiWithNumber";
+
+                }
                 current = "";
                 hindiFlag = 0;
                 engFlag = 0;
@@ -289,6 +315,26 @@ public class MessageCleaning {
         }
 
 
+        if (current.length() > 0) {
+            if (hindiFlag == 1 && engFlag == 0 && numFlag == 0) {
+                result += current + " ";
+            } else if (hindiFlag == 0 && engFlag == 1 && numFlag == 0 && !previous.equals("english")) {
+                result += "english ";
+            } else if (hindiFlag == 0 && engFlag == 0 && numFlag == 1 && !previous.equals("number")) {
+                result += "number ";
+
+            } else if (hindiFlag == 0 && engFlag == 1 && numFlag == 1 && !previous.equals("alphaNumber")) {
+                result += "alphaNumber ";
+
+            } else if (hindiFlag == 1 && engFlag == 1 && !previous.equals("mix")) {
+                result += "mix ";
+
+            } else if (hindiFlag == 1 && engFlag == 0 && numFlag == 1 && !previous.equals("hindiWithNumber")) {
+                result += "hindiWithNumber ";
+            }
+        }
+
+        System.out.println("changed: " + result.trim());
         return result.trim();
 
     }

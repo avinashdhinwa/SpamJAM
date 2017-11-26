@@ -21,6 +21,10 @@ public class Language_Filter {
 
     static HashMap<String , Integer> map = new HashMap<>();
 
+    public Language_Filter() {
+
+    }
+
     public static String predictor(String Msg){
         int sum=0;
         map.put("Hindi",0);
@@ -30,19 +34,17 @@ public class Language_Filter {
         map.put("Malayalam",0);
         for(int i=0;i<Msg.length();i++){
 
-            if((int)Msg.charAt(i)>=2309 && (int)Msg.charAt(i)<2431){
-                map.put("Hindi", map.get("Hindi") + 1);
-            }
-            if((int)Msg.charAt(i)>=2688 && (int)Msg.charAt(i)<2815){
-                map.put("Gujarati", map.get("Gujarati") + 1);
-            }
-            if((int)Msg.charAt(i)>=2560 && (int)Msg.charAt(i)<2687){
-                map.put("Punjabi", map.get("Punjabi") + 1);
-            }
-            if((int)Msg.charAt(i)>=0 && (int)Msg.charAt(i)<127){
+            if ((int) Msg.charAt(i) == 32) {
+                continue;
+            } else if ((int) Msg.charAt(i) >= 0 && (int) Msg.charAt(i) < 127) {
                 map.put("English", map.get("English") + 1);
-            }
-            if((int)Msg.charAt(i)>=3328 && (int)Msg.charAt(i)<3455){
+            } else if ((int) Msg.charAt(i) >= 2304 && (int) Msg.charAt(i) < 2431) {
+                map.put("Hindi", map.get("Hindi") + 1);
+            } else if ((int) Msg.charAt(i) >= 2688 && (int) Msg.charAt(i) < 2815) {
+                map.put("Gujarati", map.get("Gujarati") + 1);
+            } else if ((int) Msg.charAt(i) >= 2560 && (int) Msg.charAt(i) < 2687) {
+                map.put("Punjabi", map.get("Punjabi") + 1);
+            } else if ((int) Msg.charAt(i) >= 3328 && (int) Msg.charAt(i) < 3455) {
                 map.put("Malyalam", map.get("Malyalam") + 1);
             }
         }
@@ -58,12 +60,7 @@ public class Language_Filter {
             }
 
         }
-
         return lang;
-    }
-
-    public Language_Filter(){
-
     }
 
 }
