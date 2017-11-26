@@ -3,9 +3,12 @@ package com.softwareengineering.spamjam;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
+import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
+import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.NavigationView;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
@@ -65,6 +68,7 @@ public class MainMessages extends AppCompatActivity {
     static List<Integer> id_list_non_spam = new ArrayList<>();
     private static int SHOWING_SPAM_OR_HAM = Message.NOT_SPAM;
     ActionBarDrawerToggle actionBarDrawerToggle;
+    FloatingActionButton fab;
     ListView listView;
     ArrayAdapter<String> arrayAdapter;
     SmsBroadcastReceiver smsBroadcastReceiver;
@@ -88,12 +92,28 @@ public class MainMessages extends AppCompatActivity {
 
         handle_navigation_view();
 
+        handle_floating_button();
+
         while (ContextCompat.checkSelfPermission(getBaseContext(), "android.permission.READ_SMS") != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(MainMessages.this, new String[]{"android.permission.READ_SMS"}, REQUEST_CODE_ASK_PERMISSIONS);
         }
 
         init();
 
+    }
+
+    /**
+     * Floating Button Click Listener and start new Activity to send message
+     */
+    private void handle_floating_button() {
+
+        fab = (FloatingActionButton) findViewById(R.id.fab);
+        fab.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                startActivity(new Intent(getApplicationContext(), SendMessages.class));
+            }
+        });
     }
 
     /**
@@ -108,7 +128,7 @@ public class MainMessages extends AppCompatActivity {
 
         attach_listener_on_listview();
 
-        read_classified_messages();
+//        read_classified_messages();
         readMessages();
     }
 
@@ -441,15 +461,18 @@ public class MainMessages extends AppCompatActivity {
         } catch (IOException e) {
             Log.e("Exception", "File write failed: " + e.toString());
         }
-        try {
+        /*try {
             classifier.nbc_classifier.saveClassifier();
         } catch (IOException e) {
             e.printStackTrace();
-        }
+        }*/
         Log.e("Error", "writing to file ends");
 
     }
 
+    /**
+     * Function to create and handle click events in Navigation drawer
+     */
     private void handle_navigation_view() {
 
         //Initializing NavigationView
@@ -468,8 +491,11 @@ public class MainMessages extends AppCompatActivity {
                 //Closing drawer on item click
                 drawerLayout.closeDrawers();
 
-                switch (menuItem.getItemId()) {
-                    case R.id.TOOLBAR_LANGUAGES: {
+                /**
+                 * Navigation Drawer Elements
+                 */
+                switch (menuItem.getItemId()){
+                    case R.id.TOOLBAR_LANGUAGES:{
                         Intent intent = new Intent(getApplicationContext(), Languages.class);
                         startActivity(intent);
                         return true;
@@ -491,6 +517,8 @@ public class MainMessages extends AppCompatActivity {
                         SHOWING_SPAM_OR_HAM = Message.NOT_SPAM;
                         invalidateOptionsMenu();
                         fill_the_layout_with_messages();
+                        getSupportActionBar().setTitle("Inbox");  // provide compatibility to all the versions
+                        getSupportActionBar().setBackgroundDrawable(new ColorDrawable(Color.parseColor("#28539b")));
                         return true;
                     }
 
@@ -498,6 +526,8 @@ public class MainMessages extends AppCompatActivity {
                         SHOWING_SPAM_OR_HAM = Message.SPAM;
                         invalidateOptionsMenu();
                         fill_the_layout_with_messages();
+                        getSupportActionBar().setTitle("Spam");  // provide compatibility to all the versions
+                        getSupportActionBar().setBackgroundDrawable(new ColorDrawable(Color.parseColor("#ff4242")));
                         return true;
                     }
                     default:
@@ -542,6 +572,10 @@ public class MainMessages extends AppCompatActivity {
 
     }
 
+    /**
+     * @param item list of navigation drawer menu items
+     * @return toggle Drawer when clicked in the hamburger icon
+     */
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         if (actionBarDrawerToggle.onOptionsItemSelected(item)) {

@@ -447,7 +447,7 @@ shagun	1	0
 boss	4	0
 borosil	3	0
 bigg	4	0
-hey	2	0
+hey	0	3
 quick	1	0
 getmyjio	2	1
 savera	1	0
@@ -1146,7 +1146,7 @@ if	4	5
 yours	2	0
 paye	5	0
 kiye	1	0
-test	1	1
+test	1	2
 jodenge	1	0
 just	4	2
 affordable	1	0
