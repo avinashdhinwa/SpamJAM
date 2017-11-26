@@ -18,11 +18,11 @@ import java.util.Set;
 public class Classifier {
 
     static HashMap<Integer, Integer> messages_classified = new HashMap<>();
-    SQLiteDatabase mydatabase;
     NBC_Classifier nbc_classifier;
     HashSet<String> acceptedLanguages;
     HashSet<String> blackList;
     HashSet<String> whiteList;
+    private SQLiteDatabase mydatabase;
 
     public Classifier(Context context){
 
@@ -36,6 +36,11 @@ public class Classifier {
 
     }
 
+    /**
+     * Opens connection with database
+     *
+     * @param context needed for opening database
+     */
     private void init_database(Context context) {
         mydatabase = context.openOrCreateDatabase("SpamJAM", Context.MODE_PRIVATE,null);
 
@@ -44,33 +49,42 @@ public class Classifier {
         mydatabase.execSQL("CREATE TABLE IF NOT EXISTS whitelisted(Address VARCHAR);");
     }
 
+    /**Classifies a given message into spam or non-spam
+     *
+     * @param message body of a message (needed for classifying by machine learning model or language)
+     * @param sender sender of the message (needed for checking if present in blacklist or whitelist)
+     * @return spam or non-spam
+     */
     public int classify(String message, String sender){
 
         String lang = Language_Filter.predictor(message);
 
         if(blackList.contains(sender)){
             return Message.SPAM;
-        }
-        else if(whiteList.contains(sender)){
+        } else if(whiteList.contains(sender)){
             return Message.NOT_SPAM;
-        }
-        else if(!acceptedLanguages.contains(lang)){
+        } else if(!acceptedLanguages.contains(lang)){
             return Message.SPAM;
         }
 
         return nbc_classifier.classify(message);
     }
 
+    /** Classifies all messages passed as hashmap of message id and their Message object
+     *
+     * @param id_to_messages Hashmap of message id's and their corresponding Object of Message
+     * @return classified messages
+     */
     public HashMap<Integer, Integer> classify_all(HashMap<Integer, Message> id_to_messages){
 
         messages_classified.clear();
 
         Set<Integer> keys = id_to_messages.keySet();
         for (int key : keys) {
+            // don't classify messages which are part of training set
             if(id_to_messages.get(key).hard_coded == Message.YES){
                 messages_classified.put(key, id_to_messages.get(key).spam);
-            }
-            else{
+            } else{
                 String message = id_to_messages.get(key).body;
                 String sender = id_to_messages.get(key).address;
                 messages_classified.put(key, classify(message, sender));
@@ -80,35 +94,22 @@ public class Classifier {
         return messages_classified;
     }
 
-    //    public HashMap<Integer, Integer> retrain_the_model(HashMap<Integer, Message> id_to_messages,
-    public void retrain_the_model(HashMap<Integer, Message> id_to_messages,
-                                                       HashMap<Integer, String> spam_messages_training,
-                                                       HashMap<Integer, String> ham_messages_training) throws IOException {
-
-        messages_classified.clear();
-
-        /*nbc_classifier.fillTable(spam_messages_training, ham_messages_training);
-        nbc_classifier.fillTableHindi(spam_messages_training, ham_messages_training);
-*/
-        HashMap<Integer, String> messages_dataSet = new HashMap<>();
-
-        Set<Integer> keys = id_to_messages.keySet();
-        for (int key : keys) {
-            if(id_to_messages.get(key).hard_coded == Message.YES){
-                messages_classified.put(key, id_to_messages.get(key).spam);
-            }
-            else{
-                messages_dataSet.put(key, id_to_messages.get(key).body);
-            }
-        }
+    /**
+     * Retrains the classifying model
+     *
+     * @param spam_messages_training Hashmap of message (spam messages) id's and message body
+     * @param ham_messages_training  Hashmap of message (non-spam messages) id's and message body
+     * @throws IOException
+     */
+    public void retrain_the_model(HashMap<Integer, String> spam_messages_training,
+                                  HashMap<Integer, String> ham_messages_training) throws IOException {
 
         nbc_classifier.fillTable(spam_messages_training, ham_messages_training);
-        Log.e("abcd", "Classifier is called!!!");
-//        messages_classified.putAll(nbc_classifier.classify_all(messages_dataSet));
-
-//        return messages_classified;
     }
 
+    /**
+     *  Load contacts which must never be marked non-spam or inbox
+     */
     private void load_blacklist() {
         blackList = new HashSet<>();
 
@@ -123,6 +124,9 @@ public class Classifier {
         }
     }
 
+    /**
+     *  Loads contacts which must never be marked spam
+     */
     private void load_whitelist() {
         whiteList = new HashSet<>();
 
@@ -137,6 +141,9 @@ public class Classifier {
         }
     }
 
+    /**
+     *  Loads languages which are acceptable to the user
+     */
     private void load_languages() {
         acceptedLanguages = new HashSet<>();
 
@@ -159,37 +166,46 @@ public class Classifier {
         }
     }
 
+    /** Adds and removes contacts from/to blacklist and whitelist
+     *
+     * @param address Sender whom we need to blacklist/whitelist
+     * @param addTo Table (either blacklist/whitelist) to which we need to add this contact/sender
+     * @param removeFrom Table (either blacklist/whitelist) from which we need to remove this contact/sender
+     */
     public void addSenderToListAndRemoveFromOther(String address, String addTo, String removeFrom) {
 
         int flag = 0;
+
 
         if(addTo.equals("blacklisted")) {
             if (blackList.contains(address)){
                 return;
             }
             blackList.add(address);
+            // checking if contact needs to be removed or not
             if(whiteList.contains(address)){
                 whiteList.remove(address);
                 flag = 1;
             }
-        }
-        else if(addTo.equals("whitelisted")) {
+        } else if(addTo.equals("whitelisted")) {
             if (whiteList.contains(address)){
                 return;
             }
             whiteList.add(address);
+            // checking if contact needs to be removed or not
             if(blackList.contains(address)){
                 blackList.remove(address);
                 flag = 1;
             }
         }
 
+        // adding oontact to the table
         ContentValues contentValues = new ContentValues();
         contentValues.put("Address", address);
         mydatabase.insert(addTo, null, contentValues);
 
+        // remove contact from the table
         if(flag == 1) {
-            Log.e("listing", "removing " + address + " from " + removeFrom);
             mydatabase.delete(removeFrom, "Address=?", new String[]{address});
         }
     }

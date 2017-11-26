@@ -8,14 +8,11 @@ import java.util.Calendar;
 
 public class Message {
 
-    static Calendar calendar = Calendar.getInstance();
-
     static final int YES = 1;
     static final int NO = -1;
-
     static final int SPAM = 1;
     static final int NOT_SPAM = -1;
-
+    static Calendar calendar = Calendar.getInstance();
     int id;
     String person;
     String body;
@@ -40,13 +37,6 @@ public class Message {
         this.spam = spam;
     }
 
-    public void set_message(String body, String person, String address, String date){
-        this.body = body;
-        this.person = person;
-        this.address = address;
-        this.date = date;
-    }
-
     public static String millisToTime(long millis){
 
         calendar.setTimeInMillis(millis);
@@ -59,10 +49,24 @@ public class Message {
         return date;
     }
 
+    public void set_message(String body, String person, String address, String date) {
+        this.body = body;
+        this.person = person;
+        this.address = address;
+        this.date = date;
+    }
+
+    /**
+     * @return
+     */
     public String to_string_for_file(){
         return (id + " " + hard_coded + " " + spam + "\n");
     }
 
+    /** For printing Message object while debugging
+     *
+     * @return concatenating data members of Message object for
+     */
     public String to_string_for_debug(){ return ("From : " + address + " at " + date + "\n" + body + "\n");
     }
 
