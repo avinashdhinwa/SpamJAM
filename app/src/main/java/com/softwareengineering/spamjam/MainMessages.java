@@ -5,8 +5,6 @@ import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
-import android.os.Parcelable;
-import android.provider.SyncStateContract;
 import android.support.annotation.NonNull;
 import android.support.design.widget.NavigationView;
 import android.support.v4.app.ActivityCompat;
@@ -34,7 +32,6 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -43,11 +40,6 @@ import java.util.Scanner;
 import java.util.Set;
 
 public class MainMessages extends AppCompatActivity {
-
-    private Toolbar toolbar;
-    private NavigationView navigationView;
-    private DrawerLayout drawerLayout;
-    ActionBarDrawerToggle actionBarDrawerToggle;
 
     private static final int REQUEST_CODE_ASK_PERMISSIONS = 123;
     private static final int HARDCODE_AS_SPAM = 111;
@@ -58,26 +50,23 @@ public class MainMessages extends AppCompatActivity {
     private static final int WHITELIST_CONTACT = 116;
     private static final int RETRAIN = 111;
     private static final int CLASSIFY_BY_ADDRESS_ONLY = 112;
-
-    private static int SHOWING_SPAM_OR_HAM = Message.NOT_SPAM;
-
-    ListView listView;
-    ArrayAdapter<String> arrayAdapter;
-
-    SmsBroadcastReceiver smsBroadcastReceiver;
     static Classifier classifier;
-
     static HashMap<Integer, Message> id_to_messages = new HashMap<>();
-
     static HashMap<Integer, String> spam_messages_training = new HashMap<>();
     static HashMap<Integer, String> ham_messages_training = new HashMap<>();
     static HashMap<Integer, String> messages_dataSet = new HashMap<>();
-
     static HashMap<Integer, Integer> messages_classified = new HashMap<>();
-
     static List<Integer> id_list = new ArrayList<>();
     static List<Integer> id_list_spam = new ArrayList<>();
     static List<Integer> id_list_non_spam = new ArrayList<>();
+    private static int SHOWING_SPAM_OR_HAM = Message.NOT_SPAM;
+    ActionBarDrawerToggle actionBarDrawerToggle;
+    ListView listView;
+    ArrayAdapter<String> arrayAdapter;
+    SmsBroadcastReceiver smsBroadcastReceiver;
+    private Toolbar toolbar;
+    private NavigationView navigationView;
+    private DrawerLayout drawerLayout;
 
     @Override
     protected void onStart() {
@@ -109,7 +98,7 @@ public class MainMessages extends AppCompatActivity {
 
         attach_listener_on_listview();
 
-//        read_classified_messages();
+        read_classified_messages();
         readMessages();
     }
 
@@ -226,6 +215,9 @@ public class MainMessages extends AppCompatActivity {
 
         Cursor cursor = getContentResolver().query(Uri.parse(INBOX), null, null, null, null);
 
+        arrayAdapter = new MyAdapter(this, android.R.layout.simple_list_item_1, id_list_non_spam, id_to_messages);
+        listView.setAdapter(arrayAdapter);
+
         if (cursor.moveToFirst()) { // must check the result to prevent exception
 
             int BODY = cursor.getColumnIndex("body");
@@ -255,13 +247,12 @@ public class MainMessages extends AppCompatActivity {
                     case Message.SPAM: id_list_spam.add(id); break;
                 }
 
+                arrayAdapter.notifyDataSetChanged();
+
             } while (cursor.moveToNext());
         } else {
             Log.e("Error", "no messages");
         }
-
-        arrayAdapter = new MyAdapter(this, android.R.layout.simple_list_item_1, id_list_non_spam, id_to_messages);
-        listView.setAdapter(arrayAdapter);
     }
 
     @Override
@@ -411,7 +402,11 @@ public class MainMessages extends AppCompatActivity {
         } catch (IOException e) {
             Log.e("Exception", "File write failed: " + e.toString());
         }
-
+        try {
+            classifier.nbc_classifier.saveClassifier();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
         Log.e("Error", "writing to file ends");
 
     }
