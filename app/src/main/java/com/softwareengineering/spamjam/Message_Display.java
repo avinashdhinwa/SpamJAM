@@ -5,13 +5,9 @@ import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
 import android.widget.TextView;
 
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.Calendar;
-import java.util.Date;
 import java.util.GregorianCalendar;
 
 /**
@@ -40,7 +36,7 @@ public class Message_Display extends AppCompatActivity {
 
         // text.setBackgroundResource(text.getResources().getColor(android.R.color.holo_green_light));
         String s[] = message.split("`");
-       // getActionBar().setTitle("Hello");
+        // getActionBar().setTitle("Hello");
         getSupportActionBar().setTitle(s[2]);  // provide compatibility to all the versions
         getSupportActionBar().setBackgroundDrawable(new ColorDrawable(Color.parseColor("#FF6E00")));
 
@@ -56,15 +52,15 @@ public class Message_Display extends AppCompatActivity {
 
         //Log.d("Tag" , cal[2]+" "+cal[1]+" "+cal[0]);
 
-        String[] days = new String[] { "" , "SUNDAY", "MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY" };
+        String[] days = new String[]{"", "SUNDAY", "MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY"};
 
         String day = days[calendar.get(Calendar.DAY_OF_WEEK)];
 
-        String[] month = new String[] { "Jan", "Feb", "March", "April", "May", "June", "July" , "Aug" , "Sept" , "Oct" , "Nov" , "Dec"};
+        String[] month = new String[]{"Jan", "Feb", "March", "April", "May", "June", "July", "Aug", "Sept", "Oct", "Nov", "Dec"};
 
 
         text.setText(s[0]);
-        time.setText(day + ", "+month[Integer.parseInt(cal[1])] +" "+cal[0] +" " +cal1[0]);
+        time.setText(day + ", " + month[Integer.parseInt(cal[1])] + " " + cal[0] + " " + cal1[0]);
 
 
     }

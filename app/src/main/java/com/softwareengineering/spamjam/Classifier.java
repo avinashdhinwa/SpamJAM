@@ -17,14 +17,12 @@ import java.util.Set;
 
 public class Classifier {
 
+    static HashMap<Integer, Integer> messages_classified = new HashMap<>();
     SQLiteDatabase mydatabase;
     NBC_Classifier nbc_classifier;
-
     HashSet<String> acceptedLanguages;
     HashSet<String> blackList;
     HashSet<String> whiteList;
-
-    static HashMap<Integer, Integer> messages_classified = new HashMap<>();
 
     public Classifier(Context context){
 
@@ -82,7 +80,7 @@ public class Classifier {
         return messages_classified;
     }
 
-//    public HashMap<Integer, Integer> retrain_the_model(HashMap<Integer, Message> id_to_messages,
+    //    public HashMap<Integer, Integer> retrain_the_model(HashMap<Integer, Message> id_to_messages,
     public void retrain_the_model(HashMap<Integer, Message> id_to_messages,
                                                        HashMap<Integer, String> spam_messages_training,
                                                        HashMap<Integer, String> ham_messages_training) throws IOException {
@@ -104,8 +102,8 @@ public class Classifier {
             }
         }
 
-        nbc_classifier.fillTable(spam_messages_training,ham_messages_training);
-        Log.e("abcd","Classifier is called!!!");
+        nbc_classifier.fillTable(spam_messages_training, ham_messages_training);
+        Log.e("abcd", "Classifier is called!!!");
 //        messages_classified.putAll(nbc_classifier.classify_all(messages_dataSet));
 
 //        return messages_classified;

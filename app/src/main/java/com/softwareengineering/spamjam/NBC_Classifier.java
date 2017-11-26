@@ -1,12 +1,9 @@
 package com.softwareengineering.spamjam;
 
 import android.content.Context;
-import android.database.sqlite.SQLiteDatabase;
 import android.util.Log;
 
 import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -30,7 +27,7 @@ public class NBC_Classifier{
     int hindi = 1;
 
 
-    public  NBC_Classifier(Context ctx)
+    public NBC_Classifier(Context ctx)
     {
         context = ctx;
         for(int i = 0; i< size;i++){
@@ -132,8 +129,8 @@ public class NBC_Classifier{
 
         readDataSetFromFileInTable(context);
 
-        Log.e("abcd","spam count = "+spamCountArray[english]);
-        Log.e("abcd","ham count = "+hamCountArray[english]);
+        Log.e("abcd", "spam count = " + spamCountArray[english]);
+        Log.e("abcd", "ham count = " + hamCountArray[english]);
 
         Set<Integer> keys = Ham.keySet();
         for (int key : keys){
@@ -218,8 +215,8 @@ public class NBC_Classifier{
         }
 
 
-        Log.e("printer","spam count = "+spamCountArray[english]);
-        Log.e("printer","ham Count = "+hamCountArray[english]);
+        Log.e("printer", "spam count = " + spamCountArray[english]);
+        Log.e("printer", "ham Count = " + hamCountArray[english]);
 
     }
 
@@ -265,29 +262,28 @@ public class NBC_Classifier{
             String[] msgWords = message.split("\\s+");
             double hamProb = hamCountArray[english] * 1.0 / (hamCountArray[english] + spamCountArray[english]);
             double spamProb = spamCountArray[english] * 1.0 / (spamCountArray[english] + hamCountArray[english]);
-            double spValue,hmValue;
+            double spValue, hmValue;
             for (String s : msgWords) {
                 if (spamWordsArray[english].containsKey(s)) {
-                    spValue= spamWordsArray[english].get(s);
+                    spValue = spamWordsArray[english].get(s);
                 } else {
-                    spValue = (1.0 / (spamCountArray[english]+hamCountArray[english]));
+                    spValue = (1.0 / (spamCountArray[english] + hamCountArray[english]));
                 }
 
 
                 if (hamWordsArray[english].containsKey(s)) {
                     hmValue = hamWordsArray[english].get(s);
                 } else {
-                    hmValue = (1.0 /(spamCountArray[english] + hamCountArray[english]));
+                    hmValue = (1.0 / (spamCountArray[english] + hamCountArray[english]));
                 }
 
-                hamProb *= hmValue/(hmValue+spValue);
-                spamProb *= spValue/(spValue+hmValue);
+                hamProb *= hmValue / (hmValue + spValue);
+                spamProb *= spValue / (spValue + hmValue);
 
             }
             if (hamProb >= spamProb) {
                 return Message.NOT_SPAM;
-            }
-            else {
+            } else {
                 return Message.SPAM;
             }
         }
@@ -296,33 +292,30 @@ public class NBC_Classifier{
             String[] msgWords = MessageCleaning.HindiMessageCleaning(message.toLowerCase()).split("\\s+");//message.split("[\\s|;|:|,|)|(|{|}|[|]|/| |-]+");
             double hamProb = hamCountArray[hindi] * 1.0 / (hamCountArray[hindi] + spamCountArray[hindi]);
             double spamProb = spamCountArray[hindi] * 1.0 / (spamCountArray[hindi] + hamCountArray[hindi]);
-            double v1,v2;
+            double v1, v2;
             for (String s : msgWords) {
                 if (spamWordsArray[hindi].containsKey(s)) {
                     v1 = spamWordsArray[hindi].get(s);
-                }
-                else {
-                    v1  = (1.0 / spamCountArray[hindi]);
+                } else {
+                    v1 = (1.0 / spamCountArray[hindi]);
                 }
 
 
                 if (hamWordsArray[hindi].containsKey(s)) {
                     v2 = hamWordsArray[hindi].get(s);
-                }
-                else {
+                } else {
                     v2 = (0.01 / hamCountArray[hindi]);
                 }
-                hamProb *=  v2/(v1+v2);
-                spamProb *= v1/(v1+v2);
+                hamProb *= v2 / (v1 + v2);
+                spamProb *= v1 / (v1 + v2);
 
             }
 
             if (hamProb > spamProb) {
-                Log.e("filter","ham "+hamProb+" "+spamProb+" "+message);
+                Log.e("filter", "ham " + hamProb + " " + spamProb + " " + message);
                 return Message.NOT_SPAM;
-            }
-            else {
-                Log.e("filter","spam "+hamProb+" "+spamProb+" "+message);
+            } else {
+                Log.e("filter", "spam " + hamProb + " " + spamProb + " " + message);
                 return Message.SPAM;
             }
         }
@@ -331,7 +324,7 @@ public class NBC_Classifier{
 
     }
 
-    public HashMap<Integer, Integer> classify_all(HashMap<Integer, String> dataSet) throws IOException{
+    public HashMap<Integer, Integer> classify_all(HashMap<Integer, String> dataSet) throws IOException {
 
 //        fillTable(Spam, Ham);
        // fillTableHindi(Spam,Ham);
