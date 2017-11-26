@@ -3,6 +3,7 @@ package com.softwareengineering.spamjam;
 /**
  * Created by Deepak on 04-11-2017.
  */
+
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.regex.Matcher;
@@ -10,66 +11,14 @@ import java.util.regex.Pattern;
 
 
 public class MessageCleaning {
-    private static final int INC = 50;
-    private char[] b;
-    private int i,     /* offset into b */
-            i_end, /* offset to end of stemmed word */
-            j, k;
-    /* unit of size whereby b is increased */
-    public MessageCleaning()
-    {
-        b = new char[INC];
-        i = 0;
-        i_end = 0;
-    }
 
-    public static String changeInBaseForm(String message) {
-        String result = "";
-        char[] w = new char[501];
-        MessageCleaning s = new MessageCleaning();
-        int index = 0;
-        int len = message.length();
+    // method to return list of stops word of english
 
-        char ch;
-        while (index < len) {
-            ch = message.charAt(index++);
-
-            if (Character.isLetter(ch)) {
-                int j = 0;
-
-                while (true) {
-                    w[j] = ch;
-                    if (j < 500) j++;
-
-                    if (index < message.length()) {
-                        ch = message.charAt(index++);
-                    } else {
-                        ch = ' ';
-                    }
-                    if (!Character.isLetter(ch)) {
-
-                        for (int c = 0; c < j; c++) s.add(w[c]);
-
-                        s.stem();
-                        {
-                            String u;
-
-                            u = s.toString();
-                            if (u.length() > 0)
-                                result += u + " ";
-                            //System.out.print(u);
-                        }
-                        break;
-                    }
-                }
-            }
-            if (ch < 0) break;
-        }
-        return result.trim();
-    }
-
-    // stop word hashset
+    /**
+     * @return hash table of stop words
+     */
     public static HashSet<String> stopWordsSet() {
+        // string array of stop words
         String stopWords[] = {"a", "able", "and", "about", "above", "according", "accordingly", "across", "actually", "after", "afterwards",
                 "again", "against", "all", "allow", "allows", "almost", "alone", "along", "already", "also", "although", "always", "am", "among",
                 "amongst", "an", "and", "another", "any", "anybody", "anyhow", "anyone", "anything", "anyway", "anyways", "anywhere", "apart",
@@ -107,31 +56,39 @@ public class MessageCleaning {
                 "whither", "who", "whoever", "whole", "whom", "whose", "why", "will", "willing", "wish", "with", "within", "without", "wonder", "would", "would",
                 "x", "y", "yes", "yet", "you", "your", "yours", "yourself", "yourselves", "z", "zero", "-", "_", "+", ".", "&", "|"};
 
-        // String [] s1 = {"a","an","the","of","on","i","you","we","up","upom"};
-
+        // convert list in array and return
         return new HashSet<String>(Arrays.asList(stopWords));
     }
 
+    // method to clean the given word
+    /**
+     *
+     * @param input message string
+     * @return cleaned message
+     */
     public static String wordCleaning(String input) {
         input = input.trim();
-        String result = "";
+        String result = ""; // output string
 
+        // check if current word is email id
         String regex = "^[a-zA-Z0-9_!#$%&'*+/=?`{|}~^.-]+@[a-zA-Z0-9.-]+$";
         Pattern pattern = Pattern.compile(regex);
 
         Matcher matcher = pattern.matcher(input);
 
-
+        // remove special character from last
         if (input.endsWith("?") || input.endsWith(".") || input.endsWith("!") || input.endsWith(":") || input.endsWith(",") ||
                 input.endsWith("'") || input.endsWith(")")) {
             input = input.substring(0, input.length() - 1);
         }
 
+        // remove special character from last
         if (input.startsWith("#") || input.startsWith("(") || input.startsWith(")") || input.startsWith("+") || input.startsWith(":") ||
                 input.startsWith("?") || input.startsWith("@") || input.startsWith("~")) {
             input = input.substring(1, input.length());
         }
 
+        // string start with http or https then convert it weblink
         if (input.startsWith("http://") || input.startsWith("https://") || input.startsWith("www.")) {
             result = "weblink";
         } else if (matcher.matches()) {
@@ -154,11 +111,11 @@ public class MessageCleaning {
                 }
             }
 
-
+            // convert all number in number
             if (f1 == 1 && f2 == 0 && f3 == 0) {
                 result = "number";
             } else if (f1 == 1 && f2 == 1 && f3 == 0) {
-                result = "alphanumber";
+                result = "alphanumber"; // convert all alphanumber in same
             } else {
                 result = input;
             }
@@ -167,16 +124,19 @@ public class MessageCleaning {
         return result;
     }
 
+    // method to clean the message
+    /**
+     *
+     * @param message => given message
+     * @return => return clean message
+     */
     public static String newWordCleaning(String message) {
-        String result = "";
-
-        String previous = "";
-        String pPrevious = "";
-        HashSet<String> stopWords = stopWordsSet();
-
-        int letter = 0;
-        int number = 0;
-        int dialer = 0;
+        StringBuilder result = new StringBuilder();
+        String previous = ""; // current word of message
+        String pPrevious = ""; // previous word of message
+        int letter = 0; // flag for a to z
+        int number = 0; // flag for 0 to 9
+        int dialer = 0; // flag for other
         for (int i = 0; i < message.length(); i++) {
             if (message.charAt(i) >= 'a' && message.charAt(i) <= 'z') {
                 previous += message.charAt(i);
@@ -188,23 +148,23 @@ public class MessageCleaning {
                 previous += message.charAt(i);
                 dialer = 1;
             } else {
-                if (previous.length() > 1 && !stopWords.contains(previous)) {
+                if (previous.length() > 1) {
                     if (letter == 1 && number == 0 && dialer == 0) {
-                        result += previous + " ";
+                        result.append(previous + " "); // add same if only a to z
                         pPrevious = previous;
                     } else if (letter == 1 && number == 1 && dialer == 0 && !pPrevious.equals("alphanumeric")) {
-                        result += "alphanumeric ";
+                        result.append("alphanumeric "); // add alphanumeric for alpha numeric
                         pPrevious = "alphanumeric";
                     } else if (letter == 0 && number == 1 && dialer == 0 && !pPrevious.equals("digit")) {
-                        result += "digit ";
+                        result.append("digit "); // add digit for all digits
                         pPrevious = "digit";
 
                     } else if (letter == 0 && number == 1 && dialer == 1 && !pPrevious.equals("dialer")) {
-                        result += "dialer ";
+                        result.append("dialer "); // add dialer for number and some special character
                         pPrevious = "dialer";
 
                     } else {
-                        result += "typer ";
+                        result.append("typer "); // add typer for all others
                         pPrevious = "typer";
                     }
                 }
@@ -215,70 +175,103 @@ public class MessageCleaning {
             }
 
         }
+        // do same outside the for loop
+        if (previous.length() > 1) {
+            if (letter == 1 && number == 0 && dialer == 0) {
+                result.append(previous + " ");
+            } else if (letter == 1 && number == 1 && dialer == 0 && !pPrevious.equals("alphanumeric")) {
+                result.append("alphanumeric ");
+            } else if (letter == 0 && number == 1 && dialer == 0 && !pPrevious.equals("digit")) {
+                result.append("digit ");
+
+            } else if (letter == 0 && number == 1 && dialer == 1 && !pPrevious.equals("dialer")) {
+                result.append("dialer ");
+
+            } else {
+                result.append("typer ");
+            }
+        }
 
 
-        return result.trim();
+        return result.toString().trim();
     }
 
-    // to clean the message
+    // method to clean the message
+    /**
+     *
+     * @param message => given message
+     * @return => return clean message
+     */
     public static String messageCleaning(String message) {
-        String result = "";
+        String result = ""; // output string
+        String[] spliter = message.toLowerCase().split("\\s+"); // split the string based on the white spaces
 
-        String[] spliter = message.toLowerCase().split("\\s+");
-
-        HashSet<String> stopSet = stopWordsSet();
+        HashSet<String> stopSet = stopWordsSet(); // hash table of stop words
 
         for (int i = 0; i < spliter.length; i++) {
             if (!stopSet.contains(spliter[i].trim())) {
                 String cleanWord = wordCleaning(spliter[i]);
                 if (cleanWord.length() > 2) {
-                    result += cleanWord + " ";
+                    result += cleanWord + " "; // add cleanWOrd only if length is grater than 2
                 }
             }
         }
-
-        //System.out.println("result = "+result);
-        //result = changeInBaseForm(result.toLowerCase());
-
-        return result.trim();
+        return result.trim(); // return output
     }
 
-	   /* cons(i) is true <=> b[i] is a consonant. */
 
+    // method to clean the hindi message written in hindi
+
+    /**
+     *
+     * @param message given hindi message
+     * @return cleaned message
+     */
     public static String HindiMessageCleaning(String message) {
-        String result = "";
-        String current = "";
-        int engFlag = 0;
-        int hindiFlag = 0;
-        int numFlag = 0;
+        StringBuilder result = new StringBuilder(); // output string
+        String current = ""; // current string
+        int engFlag = 0; // Flag for english
+        int hindiFlag = 0; // flag for hindi
+        int numFlag = 0; // flag for number
+        String previous = ""; // previous string
+
         for (int i = 0; i < message.length(); i++) {
-            if (message.charAt(i) >= 2309 && message.charAt(i) < 2431) {
-                current += message.charAt(i);
+            if (message.charAt(i) >= 2304 && message.charAt(i) < 2431) {
+                current += message.charAt(i); // hindi flags
                 hindiFlag = 1;
             } else if (message.charAt(i) >= 'a' && message.charAt(i) <= 'z') {
-                current += message.charAt(i);
+                current += message.charAt(i); // english flags
                 engFlag = 1;
 
-            } else if ((message.charAt(i) >= '0' && message.charAt(i) <= '0') ||
-                    message.charAt(i) == '+' || message.charAt(i) == '.' || message.charAt(i) == '%') {
+            } else if ((message.charAt(i) >= '0' && message.charAt(i) <= '9') || message.charAt(i) == '#' ||
+                    message.charAt(i) == '+' || message.charAt(i) == '.' || message.charAt(i) == '%' || message.charAt(i) == '*') {
                 current += message.charAt(i);
                 numFlag = 1;
 
             } else if (current.length() > 0) {
                 if (hindiFlag == 1 && engFlag == 0 && numFlag == 0) {
-                    result += current + " ";
-                } else if (hindiFlag == 0 && engFlag == 1 && numFlag == 0) {
-                    result += "english ";
-                } else if (hindiFlag == 0 && engFlag == 0 && numFlag == 1) {
-                    result += "number ";
-                } else if (hindiFlag == 0 && engFlag == 1 && numFlag == 1) {
-                    result += "alphaNumber ";
-                } else if (hindiFlag == 1 && engFlag == 1) {
-                    result += "mix ";
-                } else if (hindiFlag == 1 && engFlag == 0 && numFlag == 1) {
-                    result += "hindiWithNumber ";
-                }
+                    result.append(current + " "); // add directly if only hindi string
+                    previous = current;
+                } else if (hindiFlag == 0 && engFlag == 1 && numFlag == 0 && !previous.equals("english")) {
+                    result.append("english "); // add english for all english words
+                    previous = "english";
+                } else if (hindiFlag == 0 && engFlag == 0 && numFlag == 1 && !previous.equals("number")) {
+                    result.append("number "); // add number for all 0-9 words
+                    previous = "number";
 
+                } else if (hindiFlag == 0 && engFlag == 1 && numFlag == 1 && !previous.equals("alphaNumber")) {
+                    result.append("alphaNumber "); // add alphaNumber for all alpha number
+                    previous = "alphaNumber";
+
+                } else if (hindiFlag == 1 && engFlag == 1 && !previous.equals("mix")) {
+                    result.append("mix "); // add mix if all present
+                    previous = "mix";
+
+                } else if (hindiFlag == 1 && engFlag == 0 && numFlag == 1 && !previous.equals("hindiWithNumber")) {
+                    result.append("hindiWithNumber "); // add hindiWithNumber for all number with hindi words
+                    previous = "hindiWithNumber";
+
+                }
                 current = "";
                 hindiFlag = 0;
                 engFlag = 0;
@@ -288,376 +281,29 @@ public class MessageCleaning {
 
         }
 
+        // do something for outer the loop
+        if (current.length() > 0) {
+            if (hindiFlag == 1 && engFlag == 0 && numFlag == 0) {
+                result.append(current + " ");
+            } else if (hindiFlag == 0 && engFlag == 1 && numFlag == 0 && !previous.equals("english")) {
+                result.append("english ");
+            } else if (hindiFlag == 0 && engFlag == 0 && numFlag == 1 && !previous.equals("number")) {
+                result.append("number ");
 
-        return result.trim();
+            } else if (hindiFlag == 0 && engFlag == 1 && numFlag == 1 && !previous.equals("alphaNumber")) {
+                result.append("alphaNumber ");
 
-    }
+            } else if (hindiFlag == 1 && engFlag == 1 && !previous.equals("mix")) {
+                result.append("mix ");
 
-	   /* m() measures the number of consonant sequences between 0 and j. if c is
-          a consonant sequence and v a vowel sequence, and <..> indicates arbitrary
-	      presence,
-
-	         <c><v>       gives 0
-	         <c>vc<v>     gives 1
-	         <c>vcvc<v>   gives 2
-	         <c>vcvcvc<v> gives 3
-	         ....
-	   */
-
-    /**
-     * Add a character to the word being stemmed.  When you are finished
-     * adding characters, you can call stem(void) to stem the word.
-     */
-
-    public void add(char ch)
-    {  if (i == b.length){
-
-        char[] new_b = new char[i+INC];
-        for (int c = 0; c < i; c++){
-            new_b[c] = b[c];
-        }
-        b = new_b;
-    }
-        b[i++] = ch;
-    }
-
-	   /* vowelinstem() is true <=> 0,...j contains a vowel */
-
-    /** Adds wLen characters to the word being stemmed contained in a portion
-     * of a char[] array. This is like repeated calls of add(char ch), but
-     * faster.
-     */
-
-    public void add(char[] w, int wLen)
-    {  if (i+wLen >= b.length){
-        char[] new_b = new char[i+wLen+INC];
-
-        for (int c = 0; c < i; c++){
-            new_b[c] = b[c];
-        }
-        b = new_b;
-    }
-
-        for (int c = 0; c < wLen; c++){
-            b[i++] = w[c];
-        }
-    }
-
-	   /* doublec(j) is true <=> j,(j-1) contain a double consonant. */
-
-    /**
-     * After a word has been stemmed, it can be retrieved by toString(),
-     * or a reference to the internal buffer can be retrieved by getResultBuffer
-     * and getResultLength (which is generally more efficient.)
-     */
-    public String toString()
-    {
-        return new String(b,0,i_end);
-    }
-
-	   /* cvc(i) is true <=> i-2,i-1,i has the form consonant - vowel - consonant
-          and also if the second c is not w,x or y. this is used when trying to
-	      restore an e at the end of a short word. e.g.
-
-	         cav(e), lov(e), hop(e), crim(e), but
-	         snow, box, tray.
-
-	   */
-
-    /**
-     * Returns the length of the word resulting from the stemming process.
-     */
-    public int getResultLength()
-    {
-        return i_end;
-    }
-
-    /**
-     * Returns a reference to a character buffer containing the results of
-     * the stemming process.  You also need to consult getResultLength()
-     * to determine the length of the result.
-     */
-    public char[] getResultBuffer()
-    {
-        return b;
-    }
-
-	   /* setto(s) sets (j+1),...k to the characters in the string s, readjusting
-          k. */
-
-    private final boolean cons(int i)
-    {
-        switch (b[i]){
-            case 'a': case 'e': case 'i': case 'o': case 'u': return false;
-            case 'y': return (i == 0) || !cons(i - 1);
-            default: return true;
-        }
-    }
-
-	   /* r(s) is used further down. */
-
-    private final int m()
-    {  int n = 0;
-        int i = 0;
-        while(true){
-            if (i > j) return n;
-            if (! cons(i)) break; i++;
-        }
-        i++;
-
-        while(true){
-            while(true){
-                if (i > j) return n;
-                if (cons(i)) break;
-                i++;
-            }
-            i++;
-            n++;
-
-            while(true){
-                if (i > j) return n;
-                if (! cons(i)) break;
-                i++;
-            }
-            i++;
-        }
-    }
-
-	   /* step1() gets rid of plurals and -ed or -ing. e.g.
-
-	          caresses  ->  caress
-	          ponies    ->  poni
-	          ties      ->  ti
-	          caress    ->  caress
-	          cats      ->  cat
-
-	          feed      ->  feed
-	          agreed    ->  agree
-	          disabled  ->  disable
-
-	          matting   ->  mat
-	          mating    ->  mate
-	          meeting   ->  meet
-	          milling   ->  mill
-	          messing   ->  mess
-
-	          meetings  ->  meet
-
-	   */
-
-    private final boolean vowelinstem()
-    {
-        int i;
-        for (i = 0; i <= j; i++){
-            if (! cons(i)){
-                return true;
+            } else if (hindiFlag == 1 && engFlag == 0 && numFlag == 1 && !previous.equals("hindiWithNumber")) {
+                result.append("hindiWithNumber ");
             }
         }
 
-        return false;
+        System.out.println("changed: " + result.toString().trim());
+        return result.toString().trim();
+
     }
-
-	   /* step2() turns terminal y to i when there is another vowel in the stem. */
-
-    private final boolean doublec(int j)
-    {
-        if (j < 1){
-            return false;
-        }
-        if (b[j] != b[j-1]){
-            return false;
-        }
-
-        return cons(j);
-    }
-
-	   /* step3() maps double suffices to single ones. so -ization ( = -ize plus
-          -ation) maps to -ize etc. note that the string before the suffix must give
-	      m() > 0. */
-
-    private final boolean cvc(int i)
-    {
-        if (i < 2 || !cons(i) || cons(i-1) || !cons(i-2)){
-            return false;
-        }
-
-        int ch = b[i];
-        return !(ch == 'w' || ch == 'x' || ch == 'y');
-    }
-
-	   /* step4() deals with -ic-, -full, -ness etc. similar strategy to step3. */
-
-    private final boolean ends(String s)
-    {
-        int l = s.length();
-        int o = k-l+1;
-        if (o < 0){
-            return false;
-        }
-
-        for (int i = 0; i < l; i++){
-            if (b[o+i] != s.charAt(i)){
-                return false;
-            }
-        }
-        j = k-l;
-        return true;
-    }
-
-	   /* step5() takes off -ant, -ence etc., in context <c>vcvc<v>. */
-
-    private final void setto(String s)
-    {
-        int l = s.length();
-        int o = j+1;
-        for (int i = 0; i < l; i++){
-            b[o+i] = s.charAt(i);
-        }
-        k = j+l;
-    }
-
-	   /* step6() removes a final -e if m() > 1. */
-
-    private final void r(String s)
-    {
-        if (m() > 0){
-            setto(s);
-        }
-    }
-
-    private final void step1()
-    {
-        if (b[k] == 's'){
-            if (ends("sses")){
-                k -= 2;
-            }
-            else if (ends("ies")){
-                setto("i");
-            }
-            else if (b[k-1] != 's'){
-                k--;
-            }
-        }
-
-        if (ends("eed")){
-            if (m() > 0) k--;
-        }
-        else if ((ends("ed") || ends("ing")) && vowelinstem())
-        {  k = j;
-            if (ends("at")) setto("ate"); else
-            if (ends("bl")) setto("ble"); else
-            if (ends("iz")) setto("ize"); else
-            if (doublec(k))
-            {  k--;
-                {  int ch = b[k];
-                    if (ch == 'l' || ch == 's' || ch == 'z') k++;
-                }
-            }
-            else if (m() == 1 && cvc(k)) setto("e");
-        }
-    }
-
-    private final void step2() { if (ends("y") && vowelinstem()) b[k] = 'i'; }
-
-
-    // function to preprocess on word
-
-    private final void step3() { if (k == 0) return; /* For Bug 1 */ switch (b[k-1])
-    {
-        case 'a': if (ends("ational")) { r("ate"); break; }
-            if (ends("tional")) { r("tion"); break; }
-            break;
-        case 'c': if (ends("enci")) { r("ence"); break; }
-            if (ends("anci")) { r("ance"); break; }
-            break;
-        case 'e': if (ends("izer")) { r("ize"); break; }
-            break;
-        case 'l': if (ends("bli")) { r("ble"); break; }
-            if (ends("alli")) { r("al"); break; }
-            if (ends("entli")) { r("ent"); break; }
-            if (ends("eli")) { r("e"); break; }
-            if (ends("ousli")) { r("ous"); break; }
-            break;
-        case 'o': if (ends("ization")) { r("ize"); break; }
-            if (ends("ation")) { r("ate"); break; }
-            if (ends("ator")) { r("ate"); break; }
-            break;
-        case 's': if (ends("alism")) { r("al"); break; }
-            if (ends("iveness")) { r("ive"); break; }
-            if (ends("fulness")) { r("ful"); break; }
-            if (ends("ousness")) { r("ous"); break; }
-            break;
-        case 't': if (ends("aliti")) { r("al"); break; }
-            if (ends("iviti")) { r("ive"); break; }
-            if (ends("biliti")) { r("ble"); break; }
-            break;
-        case 'g': if (ends("logi")) { r("log"); break; }
-    } }
-
-    private final void step4() { switch (b[k])
-    {
-        case 'e': if (ends("icate")) { r("ic"); break; }
-            if (ends("ative")) { r(""); break; }
-            if (ends("alize")) { r("al"); break; }
-            break;
-        case 'i': if (ends("iciti")) { r("ic"); break; }
-            break;
-        case 'l': if (ends("ical")) { r("ic"); break; }
-            if (ends("ful")) { r(""); break; }
-            break;
-        case 's': if (ends("ness")) { r(""); break; }
-            break;
-    } }
-
-    private final void step5()
-    {   if (k == 0) return; /* for Bug 1 */ switch (b[k-1])
-    {  case 'a': if (ends("al")) break; return;
-        case 'c': if (ends("ance")) break;
-            if (ends("ence")) break; return;
-        case 'e': if (ends("er")) break; return;
-        case 'i': if (ends("ic")) break; return;
-        case 'l': if (ends("able")) break;
-            if (ends("ible")) break; return;
-        case 'n': if (ends("ant")) break;
-            if (ends("ement")) break;
-            if (ends("ment")) break;
-	                    /* element etc. not stripped before the m */
-            if (ends("ent")) break; return;
-        case 'o': if (ends("ion") && j >= 0 && (b[j] == 's' || b[j] == 't')) break;
-	                                    /* j >= 0 fixes Bug 2 */
-            if (ends("ou")) break; return;
-	                    /* takes care of -ous */
-        case 's': if (ends("ism")) break; return;
-        case 't': if (ends("ate")) break;
-            if (ends("iti")) break; return;
-        case 'u': if (ends("ous")) break; return;
-        case 'v': if (ends("ive")) break; return;
-        case 'z': if (ends("ize")) break; return;
-        default: return;
-    }
-        if (m() > 1) k = j;
-    }
-
-    private final void step6()
-    {  j = k;
-        if (b[k] == 'e')
-        {  int a = m();
-            if (a > 1 || a == 1 && !cvc(k-1)) k--;
-        }
-        if (b[k] == 'l' && doublec(k) && m() > 1) k--;
-    }
-
-    /** Stem the word placed into the Stemmer buffer through calls to add().
-     * Returns true if the stemming process resulted in a word different
-     * from the input.  You can retrieve the result with
-     * getResultLength()/getResultBuffer() or toString().
-     */
-    public void stem()
-    {  k = i - 1;
-        if (k > 1)
-        { step1(); step2(); step3(); step4(); step5(); step6(); }
-        i_end = k+1; i = 0;
-    }
-
 
 }

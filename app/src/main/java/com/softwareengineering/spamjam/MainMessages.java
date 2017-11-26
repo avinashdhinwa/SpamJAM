@@ -49,7 +49,6 @@ public class MainMessages extends AppCompatActivity {
     private static final int HARDCODE_AS_HAM = 112;
     private static final int UNMARK = 113;
     private static final int DELETE = 114;
-    //private android.widget.RelativeLayout.LayoutParams layoutParams;
     private static final int BLACKLIST_CONTACT = 115;
     private static final int WHITELIST_CONTACT = 116;
     private static final int RETRAIN = 111;
@@ -241,6 +240,9 @@ public class MainMessages extends AppCompatActivity {
 
         Cursor cursor = getContentResolver().query(Uri.parse(INBOX), null, null, null, null);
 
+        arrayAdapter = new MyAdapter(this, android.R.layout.simple_list_item_1, id_list_non_spam, id_to_messages);
+        listView.setAdapter(arrayAdapter);
+
         if (cursor.moveToFirst()) { // must check the result to prevent exception
 
             int BODY = cursor.getColumnIndex("body");
@@ -270,13 +272,12 @@ public class MainMessages extends AppCompatActivity {
                     case Message.SPAM: id_list_spam.add(id); break;
                 }
 
+                arrayAdapter.notifyDataSetChanged();
+
             } while (cursor.moveToNext());
         } else {
             Log.e("Error", "no messages");
         }
-
-        arrayAdapter = new MyAdapter(this, android.R.layout.simple_list_item_1, id_list_non_spam, id_to_messages);
-        listView.setAdapter(arrayAdapter);
     }
 
     @Override
@@ -426,7 +427,11 @@ public class MainMessages extends AppCompatActivity {
         } catch (IOException e) {
             Log.e("Exception", "File write failed: " + e.toString());
         }
-
+        /*try {
+            classifier.nbc_classifier.saveClassifier();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }*/
         Log.e("Error", "writing to file ends");
 
     }
@@ -478,7 +483,7 @@ public class MainMessages extends AppCompatActivity {
                         SHOWING_SPAM_OR_HAM = Message.NOT_SPAM;
                         invalidateOptionsMenu();
                         fill_the_layout_with_messages();
-                        getSupportActionBar().setTitle("SpamJAM");  // provide compatibility to all the versions
+                        getSupportActionBar().setTitle("Inbox");  // provide compatibility to all the versions
                         getSupportActionBar().setBackgroundDrawable(new ColorDrawable(Color.parseColor("#28539b")));
                         return true;
                     }
