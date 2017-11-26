@@ -2,7 +2,6 @@ package com.softwareengineering.spamjam;
 
 import android.app.Activity;
 import android.content.Context;
-import android.graphics.Color;
 import android.support.annotation.LayoutRes;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -22,10 +21,9 @@ import java.util.List;
 
 public class MyAdapter extends ArrayAdapter {
 
+    private static LayoutInflater inflater = null;
     HashMap<Integer, Message> id_to_messages;
     List<Integer> id_list;
-
-    private static LayoutInflater inflater=null;
 
     public MyAdapter(@NonNull Activity activity, @LayoutRes int resource, @NonNull List<Integer> id_list, HashMap<Integer, Message> id_to_messages) {
         super(activity, resource, id_list);
@@ -41,16 +39,23 @@ public class MyAdapter extends ArrayAdapter {
         if (view == null) {
             view = inflater.inflate(R.layout.activity_main_messages_listview_row, null);
         }
-        if (position % 2 == 1) {
-            view.setBackgroundColor(Color.WHITE);
-        } else {
-            view.setBackgroundColor(Color.LTGRAY);
-        }
+//        if (position % 2 == 1) {
+//            view.setBackgroundColor(Color.WHITE);
+//        } else {
+//            view.setBackgroundColor(Color.rgb(154	,255,	154));
+//        }
 
         TextView sender = (TextView) view.findViewById(R.id.sender);
         TextView body_summary = (TextView) view.findViewById(R.id.body_summary);
         TextView timestamp = (TextView) view.findViewById(R.id.timestamp);
         ImageView image = (ImageView) view.findViewById(R.id.senders_image);
+
+        if (position % 2 == 1) {
+            image.setImageDrawable(view.getResources().getDrawable(R.drawable.man));
+        } else {
+            image.setImageDrawable(view.getResources().getDrawable(R.drawable.boss));
+
+        }
 
         String sender_name = id_to_messages.get(id_list.get(position)).address;
         if(id_to_messages.get(id_list.get(position)).person != null){

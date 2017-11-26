@@ -3,23 +3,26 @@
 
     <item
         android:id="@+id/TOOLBAR_NON_SPAM"
-        android:icon="@drawable/ic_block_black_24dp"
+        android:icon="@drawable/ic_perm_phone_msg_black_24dp"
+
+
         android:title="Inbox" />
     <item
         android:id="@+id/TOOLBAR_SPAM"
-        android:icon="@drawable/ic_home_black_24dp"
+        android:icon="@drawable/ic_warning_black_24dp"
         android:title="Spam" />
     <item
         android:id="@+id/TOOLBAR_BLACKLIST"
-        android:icon="@drawable/ic_perm_phone_msg_black_24dp"
+        android:icon="@drawable/ic_block_black_24dp"
+
         android:title="BlackList" />
     <item
         android:id="@+id/TOOLBAR_WHITELIST"
-        android:icon="@drawable/ic_perm_phone_msg_black_24dp"
+        android:icon="@drawable/ic_verified_user_black_24dp"
         android:title="WhiteList" />
     <item
         android:id="@+id/TOOLBAR_LANGUAGES"
-        android:icon="@drawable/ic_block_black_24dp"
+        android:icon="@drawable/ic_sort_by_alpha_black_24dp"
         android:title="Set Languages" />
 
 

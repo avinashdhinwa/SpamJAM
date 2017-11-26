@@ -1,13 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
 <android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="vertical">
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="1.0"
+        tools:ignore="MissingConstraints"
+        tools:layout_editor_absoluteX="0dp">
 
         <TextView
             android:id="@+id/textview"
@@ -35,6 +41,42 @@
             tools:ignore="UnknownId"
             tools:layout_weight="10dp" />
 
+        <RelativeLayout
+            android:id="@+id/unknown"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <EditText
+                android:id="@+id/editText4"
+                android:layout_width="match_parent"
+                android:layout_height="70dp"
+                android:layout_alignParentBottom="true"
+                android:layout_alignParentLeft="true"
+                android:layout_alignParentStart="true"
+                android:background="@drawable/rounded_plain_editext"
+                android:cursorVisible="false"
+                android:ems="10"
+                android:hint="  Enter Reply"
+                android:inputType="textPersonName"
+                android:paddingLeft="5dp"
+
+
+                android:textSize="20dp" />
+
+            <Button
+                android:id="@+id/button2"
+                android:layout_width="wrap_content"
+                android:layout_height="70dp"
+                android:layout_alignBottom="@+id/editText4"
+                android:layout_alignParentEnd="true"
+                android:layout_alignParentRight="true"
+                android:layout_marginEnd="6dp"
+                android:layout_marginRight="6dp"
+                android:text="Send"
+                android:theme="@style/MyButton1"
+
+                />
+        </RelativeLayout>
 
     </LinearLayout>
 

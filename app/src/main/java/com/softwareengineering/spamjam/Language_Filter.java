@@ -5,6 +5,9 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * Classification of message in specified Languages
+ */
 public class Language_Filter {
 
     static String ENGLISH = "English";
@@ -13,13 +16,24 @@ public class Language_Filter {
     static String GUJARATI = "Gujarati";
     static String MALAYALAM = "Malayalam";
 
-    public static ArrayList<String> languages =  new ArrayList<>(Arrays.asList(ENGLISH,
-                                                                                    HINDI,
-                                                                                    PUNJABI,
-                                                                                    GUJARATI,
-                                                                                    MALAYALAM));
 
+    /**
+     * List of available language for classification
+     */
+    public static ArrayList<String> languages =  new ArrayList<>(Arrays.asList(ENGLISH,
+            HINDI,
+            PUNJABI,
+            GUJARATI,
+            MALAYALAM));
+
+    /**
+     * Hashmap for storing character counter for specific Language
+     */
     static HashMap<String , Integer> map = new HashMap<>();
+
+    public Language_Filter() {
+
+    }
 
     public static String predictor(String Msg){
         int sum=0;
@@ -28,7 +42,7 @@ public class Language_Filter {
         map.put("Gujarati",0);
         map.put("Punjabi",0);
         map.put("Malayalam",0);
-        for(int i=0;i<Msg.length();i++){
+        for(int i = 0; i<Msg.length(); i++){
 
             if((int)Msg.charAt(i)>=2309 && (int)Msg.charAt(i)<2431){
                 map.put("Hindi", map.get("Hindi") + 1);
@@ -49,8 +63,7 @@ public class Language_Filter {
 
         int max=0;
         String lang="";
-        for (Map.Entry<String, Integer> entry : map.entrySet())
-        {
+        for (Map.Entry<String, Integer> entry : map.entrySet()) {
             int x = entry.getValue();
             if(x>max) {
                 max = x;
@@ -60,10 +73,6 @@ public class Language_Filter {
         }
 
         return lang;
-    }
-
-    public Language_Filter(){
-
     }
 
 }

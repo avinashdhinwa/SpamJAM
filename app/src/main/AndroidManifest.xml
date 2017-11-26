@@ -51,7 +51,17 @@
 
 
         <activity
-            android:name=".Message_Display"
+            android:name=".MessageDisplay"
+            android:theme="@style/AppTheme"
+            android:windowSoftInputMode="adjustResize|stateUnchanged">
+            android:parentActivityName=".MainMessages"
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value=".MainMessages" />
+        </activity>
+
+        <activity
+            android:name=".SendMessages"
             android:theme="@style/AppTheme">
             android:parentActivityName=".MainMessages"
             <meta-data
