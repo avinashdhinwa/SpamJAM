@@ -17,16 +17,18 @@ import java.util.Set;
 
 public class Classifier {
 
-    static HashMap<Integer, Integer> messages_classified = new HashMap<>();
     SQLiteDatabase mydatabase;
     NBC_Classifier nbc_classifier;
+
     HashSet<String> acceptedLanguages;
     HashSet<String> blackList;
     HashSet<String> whiteList;
 
+    static HashMap<Integer, Integer> messages_classified = new HashMap<>();
+
     public Classifier(Context context){
 
-        nbc_classifier = new NBC_Classifier(context, mydatabase);
+        nbc_classifier = new NBC_Classifier(context);
 
         init_database(context);
 
@@ -59,7 +61,6 @@ public class Classifier {
         }
 
         return nbc_classifier.classify(message);
-//        return Message.NOT_SPAM;
     }
 
     public HashMap<Integer, Integer> classify_all(HashMap<Integer, Message> id_to_messages){
@@ -81,14 +82,16 @@ public class Classifier {
         return messages_classified;
     }
 
-    public HashMap<Integer, Integer> retrain_the_model(HashMap<Integer, Message> id_to_messages,
+//    public HashMap<Integer, Integer> retrain_the_model(HashMap<Integer, Message> id_to_messages,
+    public void retrain_the_model(HashMap<Integer, Message> id_to_messages,
                                                        HashMap<Integer, String> spam_messages_training,
                                                        HashMap<Integer, String> ham_messages_training) throws IOException {
 
         messages_classified.clear();
 
-        nbc_classifier.fillTable(spam_messages_training, ham_messages_training);
-
+        /*nbc_classifier.fillTable(spam_messages_training, ham_messages_training);
+        nbc_classifier.fillTableHindi(spam_messages_training, ham_messages_training);
+*/
         HashMap<Integer, String> messages_dataSet = new HashMap<>();
 
         Set<Integer> keys = id_to_messages.keySet();
@@ -101,9 +104,11 @@ public class Classifier {
             }
         }
 
-        messages_classified.putAll(nbc_classifier.classify_all(spam_messages_training,ham_messages_training,messages_dataSet));
+        nbc_classifier.fillTable(spam_messages_training,ham_messages_training);
+        Log.e("abcd","Classifier is called!!!");
+//        messages_classified.putAll(nbc_classifier.classify_all(messages_dataSet));
 
-        return messages_classified;
+//        return messages_classified;
     }
 
     private void load_blacklist() {

@@ -48,6 +48,17 @@
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value=".MainMessages" />
         </activity>
+
+
+        <activity
+            android:name=".Message_Display"
+            android:theme="@style/AppTheme">
+            android:parentActivityName=".MainMessages"
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value=".MainMessages" />
+        </activity>
+
         <activity android:name=".MainActivity">
         </activity>
         <activity android:name=".BlacklistedContacts" />

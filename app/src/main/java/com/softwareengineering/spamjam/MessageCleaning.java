@@ -640,4 +640,62 @@ public class MessageCleaning {
         return result.trim();
     }
 
+
+    public static String HindiMessageCleaning(String message){
+        String result = "";
+        String current = "";
+        int engFlag = 0;
+        int hindiFlag = 0;
+        int numFlag = 0;
+        for(int i = 0;i < message.length();i++){
+            if(message.charAt(i)>=2309 && message.charAt(i)<2431){
+                current += message.charAt(i);
+                hindiFlag = 1;
+            }
+            else if(message.charAt(i) >= 'a' && message.charAt(i) <= 'z'){
+                current += message.charAt(i);
+                engFlag = 1;
+
+            }
+            else if((message.charAt(i) >= '0' && message.charAt(i) <= '0')||
+                    message.charAt(i)=='+'||message.charAt(i)=='.'||message.charAt(i)=='%'){
+                current += message.charAt(i);
+                numFlag = 1;
+
+            }
+            else if(current.length() > 0){
+                if(hindiFlag == 1 && engFlag == 0 && numFlag == 0){
+                    result += current+" ";
+                }
+                else if(hindiFlag==0 && engFlag == 1 && numFlag == 0){
+                    result += "english ";
+                }
+                else if(hindiFlag == 0 && engFlag == 0 && numFlag == 1){
+                    result += "number ";
+                }
+                else if(hindiFlag == 0 && engFlag == 1 && numFlag == 1){
+                    result += "alphaNumber ";
+                }
+                else if(hindiFlag == 1 && engFlag == 1){
+                    result += "mix ";
+                }
+                else if(hindiFlag == 1 && engFlag == 0 && numFlag == 1){
+                    result += "hindiWithNumber ";
+                }
+
+                current = "";
+                hindiFlag = 0;
+                engFlag = 0;
+                numFlag = 0;
+            }
+
+
+        }
+
+
+        return result.trim();
+
+    }
+
+
 }
