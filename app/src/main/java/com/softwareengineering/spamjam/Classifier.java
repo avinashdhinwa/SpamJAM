@@ -17,14 +17,12 @@ import java.util.Set;
 
 public class Classifier {
 
+    static HashMap<Integer, Integer> messages_classified = new HashMap<>();
     SQLiteDatabase mydatabase;
     NBC_Classifier nbc_classifier;
-
     HashSet<String> acceptedLanguages;
     HashSet<String> blackList;
     HashSet<String> whiteList;
-
-    static HashMap<Integer, Integer> messages_classified = new HashMap<>();
 
     public Classifier(Context context){
 
@@ -154,8 +152,10 @@ public class Classifier {
         if(acceptedLanguages.size() == 0){
             ContentValues contentValues = new ContentValues();
             contentValues.put("Language", Language_Filter.ENGLISH);
+            contentValues.put("Language", Language_Filter.HINDI);
             mydatabase.insert("languages", null, contentValues);
             acceptedLanguages.add(Language_Filter.ENGLISH);
+            acceptedLanguages.add(Language_Filter.HINDI);
         }
     }
 
