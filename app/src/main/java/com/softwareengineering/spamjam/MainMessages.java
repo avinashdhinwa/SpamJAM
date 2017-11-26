@@ -98,7 +98,7 @@ public class MainMessages extends AppCompatActivity {
 
         attach_listener_on_listview();
 
-//        read_classified_messages();
+        read_classified_messages();
         readMessages();
     }
 
@@ -213,6 +213,9 @@ public class MainMessages extends AppCompatActivity {
 
         Cursor cursor = getContentResolver().query(Uri.parse(INBOX), null, null, null, null);
 
+        arrayAdapter = new MyAdapter(this, android.R.layout.simple_list_item_1, id_list_non_spam, id_to_messages);
+        listView.setAdapter(arrayAdapter);
+
         if (cursor.moveToFirst()) { // must check the result to prevent exception
 
             int BODY = cursor.getColumnIndex("body");
@@ -242,13 +245,12 @@ public class MainMessages extends AppCompatActivity {
                     case Message.SPAM: id_list_spam.add(id); break;
                 }
 
+                arrayAdapter.notifyDataSetChanged();
+
             } while (cursor.moveToNext());
         } else {
             Log.e("Error", "no messages");
         }
-
-        arrayAdapter = new MyAdapter(this, android.R.layout.simple_list_item_1, id_list_non_spam, id_to_messages);
-        listView.setAdapter(arrayAdapter);
     }
 
     @Override
@@ -396,7 +398,11 @@ public class MainMessages extends AppCompatActivity {
         } catch (IOException e) {
             Log.e("Exception", "File write failed: " + e.toString());
         }
-
+        try {
+            classifier.nbc_classifier.saveClassifier();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
         Log.e("Error", "writing to file ends");
 
     }
