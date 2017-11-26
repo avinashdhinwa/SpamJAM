@@ -50,6 +50,10 @@ public class MainMessages extends AppCompatActivity {
     private static final int WHITELIST_CONTACT = 116;
     private static final int RETRAIN = 111;
     private static final int CLASSIFY_BY_ADDRESS_ONLY = 112;
+
+    static int number_of_new_messages = 0;
+    static int max_id = 0;
+
     static Classifier classifier;
     static HashMap<Integer, Message> id_to_messages = new HashMap<>();
     static HashMap<Integer, String> spam_messages_training = new HashMap<>();
@@ -79,7 +83,7 @@ public class MainMessages extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main_messages);
 
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
         handle_navigation_view();
@@ -92,6 +96,12 @@ public class MainMessages extends AppCompatActivity {
 
     }
 
+    /**
+     * initialises classifier (which classifies messages)
+     * attaches listener on list-view items (messages)
+     * read already classified messages
+     * read messages from disk
+     */
     private void init() {
 
         classifier = new Classifier(this);
@@ -102,6 +112,9 @@ public class MainMessages extends AppCompatActivity {
         readMessages();
     }
 
+    /**
+     * attaches listener on listview elements for long-click (context menu) and for click (opens messages)
+     */
     private void attach_listener_on_listview() {
 
         listView = (ListView) findViewById(R.id.all_messages);
@@ -110,8 +123,10 @@ public class MainMessages extends AppCompatActivity {
         load_message_in_new_activity();
     }
 
+    /**
+     * displays message in new activity
+     */
     private void load_message_in_new_activity() {
-
 
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
@@ -126,20 +141,19 @@ public class MainMessages extends AppCompatActivity {
                     message = id_to_messages.get(id_list_non_spam.get(pos));
                 }
 
-                //Toast.makeText(getApplicationContext(), message ,Toast.LENGTH_SHORT).show();
-
                 Intent i = new Intent(getApplicationContext(), Message_Display.class);
-//                Bundle b = new Bundle();
-//                b.putParcelable("message", (Parcelable) message);
                 i.putExtra("key", message.body + "`" + message.date + "`" + message.address);
                 startActivity(i);
-
-
             }
         });
-
     }
 
+    /**
+     * classifies all the messages in inbox and spam, it is called only when either language changes
+     * or something is added to blacklist or whitelist
+     *
+     * @param MODE Tells whether the machine learning model needs to be retrained or
+     */
     private void classify(int MODE) {
 
         Set<Integer> keys = id_to_messages.keySet();
@@ -153,14 +167,12 @@ public class MainMessages extends AppCompatActivity {
         }
         messages_classified = classifier.classify_all(id_to_messages);
 
-
         id_list_non_spam.clear();
         id_list_spam.clear();
         for (int key : keys){
             if(messages_classified.get(key) == Message.SPAM) {
                 id_list_spam.add(key);
-            }
-            else if(messages_classified.get(key) == Message.NOT_SPAM) {
+            } else if(messages_classified.get(key) == Message.NOT_SPAM) {
                 id_list_non_spam.add(key);
             }
         }
@@ -171,6 +183,9 @@ public class MainMessages extends AppCompatActivity {
         fill_the_layout_with_messages();
     }
 
+    /**
+     * reads message's classes (spam or non-spam) from disk
+     */
     private void read_classified_messages() {
 
         File file = new File(this.getFilesDir(), "messages_classes.txt");
@@ -190,24 +205,33 @@ public class MainMessages extends AppCompatActivity {
         }
     }
 
+    /** Adds a new incoming message to the list-view
+     *
+     * @param message object sent by broadcastReceiver
+     */
     @Subscribe
     public void addMessageToList(Message message) {
-        Log.e("broadcast", "Entered subscribed event");
+        Log.d("broadcast", "Entered subscribed event");
         int id = message.id;
+        Log.d("broadcast", "id : " + id);
         if(!id_to_messages.containsKey(id)) {
             id_list.add(0, id);
+            number_of_new_messages++;
             id_to_messages.put(id, message);
             if (classifier.classify(message.body, message.address) == Message.SPAM) {
                 id_list_spam.add(0, id);
             } else {
                 id_list_non_spam.add(0, id);
             }
-            Log.e("broadcast", message.to_string_for_debug());
-            Log.e("broadcast", id_to_messages.get(id_list_non_spam.get(0)).to_string_for_debug());
+            Log.d("broadcast", message.to_string_for_debug());
+            Log.d("broadcast", id_to_messages.get(id_list_non_spam.get(0)).to_string_for_debug());
             fill_the_layout_with_messages();
         }
     }
 
+    /**
+     * Reads messages from inbox
+     */
     void readMessages() {
         String INBOX = "content://sms/inbox";
 
@@ -232,6 +256,10 @@ public class MainMessages extends AppCompatActivity {
                 String date = Message.millisToTime(cursor.getLong(DATE));
                 String address = cursor.getString(ADDRESS);
 
+                if (id > max_id) {
+                    max_id = id;
+                }
+
                 id_list.add(id);
 
                 if (id_to_messages.containsKey(id)) {
@@ -253,6 +281,12 @@ public class MainMessages extends AppCompatActivity {
         }
     }
 
+    /**
+     *  Executes operations dependent on option selected by user
+     *
+     * @param item item which is selected by user from context menu
+     * @return returns true or false depending upon operation in function
+     */
     @Override
     public boolean onContextItemSelected(MenuItem item) {
         AdapterView.AdapterContextMenuInfo info = (AdapterView.AdapterContextMenuInfo) item.getMenuInfo();
@@ -261,8 +295,7 @@ public class MainMessages extends AppCompatActivity {
         int id_from_pos = 0;
         if(SHOWING_SPAM_OR_HAM == Message.SPAM){
             id_from_pos = id_list_spam.get(info.position);
-        }
-        else if(SHOWING_SPAM_OR_HAM == Message.NOT_SPAM){
+        } else if(SHOWING_SPAM_OR_HAM == Message.NOT_SPAM){
             id_from_pos = id_list_non_spam.get(info.position);
         }
 
@@ -325,6 +358,12 @@ public class MainMessages extends AppCompatActivity {
         return super.onContextItemSelected(item);
     }
 
+    /** Creates context menu
+     *
+     * @param menu default
+     * @param v default
+     * @param menuInfo default
+     */
     @Override
     public void onCreateContextMenu(ContextMenu menu, View v, ContextMenu.ContextMenuInfo menuInfo) {
         super.onCreateContextMenu(menu, v, menuInfo);
@@ -337,31 +376,35 @@ public class MainMessages extends AppCompatActivity {
             String[] menuItems = {"Mark Spam", "Mark Non-Spam", "Unmark", "Delete", "Blacklist Contact", "Whitelist Contact"};
             menu.add(Menu.NONE, HARDCODE_AS_SPAM, 0, menuItems[0]);
             menu.add(Menu.NONE, HARDCODE_AS_HAM, 0, menuItems[1]);
-            menu.add(Menu.NONE, UNMARK, 0, menuItems[2]);
-            menu.add(Menu.NONE, DELETE, 0, menuItems[3]);
+//            menu.add(Menu.NONE, UNMARK, 0, menuItems[2]);
+//            menu.add(Menu.NONE, DELETE, 0, menuItems[3]);
             menu.add(Menu.NONE, BLACKLIST_CONTACT, 0, menuItems[4]);
             menu.add(Menu.NONE, WHITELIST_CONTACT, 0, menuItems[5]);
         }
     }
 
+    /**
+     * fills the main layout with spam or non-spam messages depending on user's selection
+     */
     private void fill_the_layout_with_messages() {
 
         switch(SHOWING_SPAM_OR_HAM){
             case Message.NOT_SPAM:{
                 arrayAdapter = new MyAdapter(this, android.R.layout.simple_list_item_1, id_list_non_spam, id_to_messages);
+                getSupportActionBar().setTitle("Inbox");
                 listView.setAdapter(arrayAdapter);
                 Log.e("filling layout", "Displaying NOT SPAM");
             }
             break;
             case Message.SPAM:{
                 arrayAdapter = new MyAdapter(this, android.R.layout.simple_list_item_1, id_list_spam, id_to_messages);
+                getSupportActionBar().setTitle("Spam");
                 listView.setAdapter(arrayAdapter);
                 Log.e("filling layout", "Displaying SPAM");
             }
             break;
         }
     }
-
 
     @Override
     protected void onStop() {
@@ -388,10 +431,10 @@ public class MainMessages extends AppCompatActivity {
             file.createNewFile();
             OutputStreamWriter myOutWriter = new OutputStreamWriter(new FileOutputStream(file));
 
-            Set<Integer> keys = id_to_messages.keySet();
-            for (int key : keys) {
-                //Log.e("Writing : ", id_to_messages.get(key).to_string_for_file());
-                myOutWriter.append(id_to_messages.get(key).to_string_for_file());
+            int number_of_messages = id_list.size();
+            for (int message_number = number_of_messages; message_number < number_of_messages; message_number++) {
+                myOutWriter.append(id_to_messages.get(id_list.get(message_number)).to_string_for_file());
+                Log.d("writing", id_to_messages.get(id_list.get(message_number)).to_string_for_file());
             }
 
             myOutWriter.close();

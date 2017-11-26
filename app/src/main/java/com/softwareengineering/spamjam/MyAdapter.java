@@ -51,7 +51,8 @@ public class MyAdapter extends ArrayAdapter {
         if (position % 2 == 1) {
             view.setBackgroundColor(Color.WHITE);
         } else {
-            view.setBackgroundColor(Color.LTGRAY);
+//            view.setBackgroundColor(Color.argb(121,255, 110, 0));
+            view.setBackgroundColor(Color.rgb(255, 110, 0));
         }
 
         TextView sender = (TextView) view.findViewById(R.id.sender);
