@@ -3,6 +3,8 @@ package com.softwareengineering.spamjam;
 import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
@@ -28,6 +30,10 @@ public class Languages extends AppCompatActivity {
         actionBar.setDisplayHomeAsUpEnabled(true);
 
         load_languages();
+
+        getSupportActionBar().setTitle("Select Languages");  // provide compatibility to all the versions
+        getSupportActionBar().setBackgroundDrawable(new ColorDrawable(Color.parseColor("#FF6E00")));
+        getSupportActionBar().setDisplayHomeAsUpEnabled(false);
     }
 
     /**
@@ -55,6 +61,7 @@ public class Languages extends AppCompatActivity {
         for(int i = 0; i < languages.size(); i++){
             CheckBox checkBox = new CheckBox(this);
             checkBox.setText(languages.get(i));
+            checkBox.setTextSize(24);
             if(languages_selected.containsKey(languages.get(i))){
                 checkBox.setChecked(true);
             }

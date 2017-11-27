@@ -44,9 +44,6 @@ import java.util.Set;
 
 public class ReceivedMessages extends AppCompatActivity {
 
-    static final int SWITCH_FROM_LANGUAGE = 1;
-    static final int SWITCH_FROM_BLACKLIST = 2;
-    static final int SWITCH_FROM_WHITELIST = 3;
     private static final int REQUEST_CODE_ASK_PERMISSIONS = 123;
     private static final int HARDCODE_AS_SPAM = 111;
     private static final int HARDCODE_AS_HAM = 112;
@@ -115,6 +112,9 @@ public class ReceivedMessages extends AppCompatActivity {
         }
 
         init();
+
+        getSupportActionBar().setTitle("SpamJAM");  // provide compatibility to all the versions
+        getSupportActionBar().setBackgroundDrawable(new ColorDrawable(Color.parseColor("#8eff82")));
 
     }
 
@@ -510,7 +510,7 @@ public class ReceivedMessages extends AppCompatActivity {
         //Initializing NavigationView
         navigationView = (NavigationView) findViewById(R.id.navigation_view);
 
-        navigationView.setNavigationItemSelectedListener(new NavigationView.OnNavigationItemSelectedListener() {
+        navigationView.setNavigationItemSelectedListener(new NavigationView.OnNavigationItemSelectedListener(){
             @Override
             public boolean onNavigationItemSelected(@NonNull MenuItem menuItem) {
 
@@ -599,5 +599,4 @@ public class ReceivedMessages extends AppCompatActivity {
         }
         return super.onOptionsItemSelected(item);
     }
-
 }

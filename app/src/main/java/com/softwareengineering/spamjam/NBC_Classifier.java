@@ -424,7 +424,7 @@ public class NBC_Classifier{
      * @return return list of classified messages with ids
      * @throws IOException return exception if not get files
      */
-    public HashMap<Integer, Integer> classify_all(HashMap<Integer, String> dataSet) throws IOException{
+    public HashMap<Integer, Integer> classify_all(HashMap<Integer, String> dataSet) throws IOException {
 
 //        fillTable(Spam, Ham);
         // fillTableHindi(Spam,Ham);

@@ -54,9 +54,9 @@ public class MyAdapter extends ArrayAdapter {
         ImageView image = (ImageView) view.findViewById(R.id.senders_image);
 
         if (position % 2 == 1) {
-            image.setImageDrawable(view.getResources().getDrawable(R.drawable.man));
+            image.setImageDrawable(view.getResources().getDrawable(R.drawable.man1));
         } else {
-            image.setImageDrawable(view.getResources().getDrawable(R.drawable.boss));
+            image.setImageDrawable(view.getResources().getDrawable(R.drawable.man2));
 
         }
 

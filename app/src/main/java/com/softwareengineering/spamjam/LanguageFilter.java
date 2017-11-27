@@ -16,10 +16,10 @@ public class LanguageFilter {
      * list of languages
      */
     public static ArrayList<String> languages =  new ArrayList<>(Arrays.asList(ENGLISH,
-                                                                                    HINDI,
-                                                                                    PUNJABI,
-                                                                                    GUJARATI,
-                                                                                    MALAYALAM));
+            HINDI,
+            PUNJABI,
+            GUJARATI,
+            MALAYALAM));
 
     static HashMap<String , Integer> map = new HashMap<>();
 
