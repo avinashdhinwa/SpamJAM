@@ -9,8 +9,9 @@
 
     <application
         android:allowBackup="true"
-        android:icon="@mipmap/ic_launcher"
+        android:icon="@drawable/spam"
         android:label="@string/app_name"
+        android:launchMode="singleTop"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.AppCompat.Light.NoActionBar">
@@ -63,7 +64,7 @@
         <activity
             android:name=".SendMessages"
             android:theme="@style/AppTheme">
-            android:parentActivityName=".MainMessages"
+
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value=".MainMessages" />

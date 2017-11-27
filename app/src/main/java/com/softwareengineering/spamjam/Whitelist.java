@@ -2,6 +2,8 @@ package com.softwareengineering.spamjam;
 
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
@@ -28,6 +30,10 @@ public class Whitelist extends AppCompatActivity {
         actionBar.setDisplayHomeAsUpEnabled(true);
 
         load_whitelist();
+
+        getSupportActionBar().setTitle("WhiteListed Contact");  // provide compatibility to all the versions
+        getSupportActionBar().setBackgroundDrawable(new ColorDrawable(Color.parseColor("#FF6E00")));
+        getSupportActionBar().setDisplayHomeAsUpEnabled(false);
     }
 
     void load_whitelist(){
@@ -49,6 +55,7 @@ public class Whitelist extends AppCompatActivity {
         for(int i = 0; i < whiteList.size(); i++){
             CheckBox checkBox = new CheckBox(this);
             checkBox.setText(whiteList.get(i));
+            checkBox.setTextSize(24);
             checkBox.setChecked(true);
             parentLayout.addView(checkBox);
         }

@@ -2,6 +2,8 @@ package com.softwareengineering.spamjam;
 
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
@@ -26,8 +28,11 @@ public class Blacklist extends AppCompatActivity {
 
         ActionBar actionBar = getSupportActionBar();
         actionBar.setDisplayHomeAsUpEnabled(true);
-
+        getSupportActionBar().setDisplayHomeAsUpEnabled(false);
         load_blacklist();
+
+        getSupportActionBar().setTitle("BlackListed Contact");  // provide compatibility to all the versions
+        getSupportActionBar().setBackgroundDrawable(new ColorDrawable(Color.parseColor("#FF6E00")));
     }
 
     void load_blacklist(){
@@ -50,6 +55,7 @@ public class Blacklist extends AppCompatActivity {
             CheckBox checkBox = new CheckBox(this);
             checkBox.setText(blackList.get(i));
             checkBox.setChecked(true);
+            checkBox.setTextSize(24);
             parentLayout.addView(checkBox);
         }
     }

@@ -57,6 +57,7 @@ public class MessageDisplay extends AppCompatActivity {
          */
         getSupportActionBar().setTitle(s[2]);  // provide compatibility to all the versions
         getSupportActionBar().setBackgroundDrawable(new ColorDrawable(Color.parseColor("#FF6E00")));
+        getSupportActionBar().setDisplayHomeAsUpEnabled(false);
 
 
         String cal1[] = s[1].split(" ");

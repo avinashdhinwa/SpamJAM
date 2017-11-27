@@ -96,6 +96,9 @@ public class MainMessages extends AppCompatActivity {
 
         init();
 
+        getSupportActionBar().setTitle("SpamJAM");  // provide compatibility to all the versions
+        getSupportActionBar().setBackgroundDrawable(new ColorDrawable(Color.parseColor("#8eff82")));
+
     }
 
     /**
@@ -240,9 +243,6 @@ public class MainMessages extends AppCompatActivity {
 
         Cursor cursor = getContentResolver().query(Uri.parse(INBOX), null, null, null, null);
 
-        arrayAdapter = new MyAdapter(this, android.R.layout.simple_list_item_1, id_list_non_spam, id_to_messages);
-        listView.setAdapter(arrayAdapter);
-
         if (cursor.moveToFirst()) { // must check the result to prevent exception
 
             int BODY = cursor.getColumnIndex("body");
@@ -272,12 +272,16 @@ public class MainMessages extends AppCompatActivity {
                     case Message.SPAM: id_list_spam.add(id); break;
                 }
 
-                arrayAdapter.notifyDataSetChanged();
-
             } while (cursor.moveToNext());
         } else {
             Log.e("Error", "no messages");
         }
+
+        Collections.sort(id_list_non_spam, Collections.<Integer>reverseOrder());
+        Collections.sort(id_list_spam, Collections.<Integer>reverseOrder());
+
+        arrayAdapter = new MyAdapter(this, android.R.layout.simple_list_item_1, id_list_non_spam, id_to_messages);
+        listView.setAdapter(arrayAdapter);
     }
 
     @Override
@@ -389,9 +393,6 @@ public class MainMessages extends AppCompatActivity {
         }
     }
 
-
-
-
     @Override
     protected void onStop() {
         EventBus.getDefault().unregister(this);
@@ -484,7 +485,7 @@ public class MainMessages extends AppCompatActivity {
                         invalidateOptionsMenu();
                         fill_the_layout_with_messages();
                         getSupportActionBar().setTitle("Inbox");  // provide compatibility to all the versions
-                        getSupportActionBar().setBackgroundDrawable(new ColorDrawable(Color.parseColor("#28539b")));
+                        getSupportActionBar().setBackgroundDrawable(new ColorDrawable(Color.parseColor("#fcff5e")));
                         return true;
                     }
 
@@ -549,5 +550,6 @@ public class MainMessages extends AppCompatActivity {
         }
         return super.onOptionsItemSelected(item);
     }
+
 
 }

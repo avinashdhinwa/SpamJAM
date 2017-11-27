@@ -16,10 +16,10 @@ public class Language_Filter {
      * list of languages
      */
     public static ArrayList<String> languages =  new ArrayList<>(Arrays.asList(ENGLISH,
-                                                                                    HINDI,
-                                                                                    PUNJABI,
-                                                                                    GUJARATI,
-                                                                                    MALAYALAM));
+            HINDI,
+            PUNJABI,
+            GUJARATI,
+            MALAYALAM));
 
     static HashMap<String , Integer> map = new HashMap<>();
 
@@ -42,7 +42,7 @@ public class Language_Filter {
         map.put("Punjabi",0);
         map.put("Malayalam", 0);
         // go through all message character
-        for(int i = 0; i<Msg.length(); i++) {
+        for (int i = 0; i < Msg.length(); i++) {
 
             // if it is white space skip it otherwise add in corresponding language
             if ((int) Msg.charAt(i) == 32) {

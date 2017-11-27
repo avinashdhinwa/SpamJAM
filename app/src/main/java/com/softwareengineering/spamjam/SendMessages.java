@@ -76,5 +76,4 @@ public class SendMessages extends AppCompatActivity {
         }
     }
 
-
 }
