@@ -159,10 +159,13 @@ public class Classifier {
 
         if(acceptedLanguages.size() == 0){
             ContentValues contentValues = new ContentValues();
+
             contentValues.put("Language", LanguageFilter.ENGLISH);
             mydatabase.insert("languages", null, contentValues);
+
             contentValues.put("Language", LanguageFilter.HINDI);
             mydatabase.insert("languages", null, contentValues);
+
             acceptedLanguages.add(LanguageFilter.ENGLISH);
             acceptedLanguages.add(LanguageFilter.HINDI);
         }
