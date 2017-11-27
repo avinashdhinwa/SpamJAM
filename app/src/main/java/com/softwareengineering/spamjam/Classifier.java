@@ -57,7 +57,7 @@ public class Classifier {
      */
     public int classify(String message, String sender){
 
-        String lang = Language_Filter.predictor(message);
+        String lang = LanguageFilter.predictor(message);
 
         if(blackList.contains(sender)){
             return Message.SPAM;
@@ -88,6 +88,7 @@ public class Classifier {
                 String message = id_to_messages.get(key).body;
                 String sender = id_to_messages.get(key).address;
                 messages_classified.put(key, classify(message, sender));
+                Log.d("changes", "classifying : " + message);
             }
         }
 
@@ -158,12 +159,12 @@ public class Classifier {
 
         if(acceptedLanguages.size() == 0){
             ContentValues contentValues = new ContentValues();
-            contentValues.put("Language", Language_Filter.ENGLISH);
+            contentValues.put("Language", LanguageFilter.ENGLISH);
             mydatabase.insert("languages", null, contentValues);
-            contentValues.put("Language", Language_Filter.HINDI);
+            contentValues.put("Language", LanguageFilter.HINDI);
             mydatabase.insert("languages", null, contentValues);
-            acceptedLanguages.add(Language_Filter.ENGLISH);
-            acceptedLanguages.add(Language_Filter.HINDI);
+            acceptedLanguages.add(LanguageFilter.ENGLISH);
+            acceptedLanguages.add(LanguageFilter.HINDI);
         }
     }
 

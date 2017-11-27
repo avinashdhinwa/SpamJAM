@@ -1,5 +1,6 @@
 package com.softwareengineering.spamjam;
 
+import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
@@ -66,13 +67,22 @@ public class Blacklist extends AppCompatActivity {
 
         LinearLayout linearLayout = (LinearLayout) findViewById(R.id.linear_layout_with_blacklist_contacts_choice);
 
+        int number_of_changes = 0;
+
         for (int i = 0; i < linearLayout.getChildCount(); i++) {
             CheckBox checkBox = (CheckBox) linearLayout.getChildAt(i);
             String address = (String) checkBox.getText();
             if (checkBox.isChecked()) {
             } else {
                 mydatabase.delete("blacklisted", "Address=?", new String[]{address});
+                number_of_changes++;
             }
+        }
+
+        if (number_of_changes != 0) {
+            SharedPreferences.Editor editor = getSharedPreferences("SpamJAM", MODE_PRIVATE).edit();
+            editor.putInt("classify", 12);
+            editor.apply();
         }
 
         super.onDestroy();

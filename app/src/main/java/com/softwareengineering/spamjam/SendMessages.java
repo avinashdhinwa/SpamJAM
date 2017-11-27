@@ -47,10 +47,7 @@ public class SendMessages extends AppCompatActivity {
                             Toast.LENGTH_SHORT).show();
             }
         });
-
-
     }
-
 
     /**
      * @param phoneNo phoneNo of message owber
@@ -69,7 +66,7 @@ public class SendMessages extends AppCompatActivity {
             txtPhoneNo.setText("");
         } catch (Exception e) {
             Toast.makeText(getApplicationContext(),
-                    "SMS faild, please try again.",
+                    "SMS failed, please try again.",
                     Toast.LENGTH_LONG).show();
             e.printStackTrace();
             txtview.setText("SMS faild, please try again." + " ✘");

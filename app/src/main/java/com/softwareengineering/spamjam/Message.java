@@ -9,6 +9,8 @@ class Message {
     static final int SPAM = 1;
     static final int NOT_SPAM = -1;
 
+    static final int INBOX = 0;
+
     static private Calendar calendar = Calendar.getInstance();
 
     // id of a message (It is unique for each message)
@@ -21,6 +23,9 @@ class Message {
     String address;
     // date and time of receiving message hh:mm dd-mm-yyyy
     String date;
+
+    // tells whether message is from 'sent' or 'inbox'
+    int message_type;
 
     // determines whether this message is part of training dataset or not
     int hard_coded;
@@ -102,4 +107,7 @@ class Message {
     public String to_string_for_debug(){ return ("From : " + address + " at " + date + "\n" + body + "\n");
     }
 
+    public void setMessageType(int folder_type) {
+        this.message_type = folder_type;
+    }
 }

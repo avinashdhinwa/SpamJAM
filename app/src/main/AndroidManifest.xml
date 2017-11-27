@@ -16,7 +16,7 @@
         android:theme="@style/Theme.AppCompat.Light.NoActionBar">
 
         <activity
-            android:name=".MainMessages"
+            android:name=".ReceivedMessages"
             android:label="@string/title_activity_main_messages"
             android:theme="@style/AppTheme.NoActionBar">
             <intent-filter>
@@ -28,48 +28,48 @@
 
         <activity
             android:name=".Languages"
+            android:parentActivityName=".ReceivedMessages"
             android:theme="@style/AppTheme.NoActionBar">
-            android:parentActivityName=".MainMessages"
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
-                android:value=".MainMessages" />
+                android:value=".ReceivedMessages" />
         </activity>
 
         <activity
             android:name=".Blacklist"
+            android:parentActivityName=".ReceivedMessages"
             android:theme="@style/AppTheme.NoActionBar">
-            android:parentActivityName=".MainMessages"
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
-                android:value=".MainMessages" />
+                android:value=".ReceivedMessages" />
         </activity>
 
         <activity
             android:name=".Whitelist"
+            android:parentActivityName=".ReceivedMessages"
             android:theme="@style/AppTheme.NoActionBar">
-            android:parentActivityName=".MainMessages"
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
-                android:value=".MainMessages" />
+                android:value=".ReceivedMessages" />
         </activity>
 
         <activity
             android:name=".MessageDisplay"
+            android:parentActivityName=".ReceivedMessages"
             android:theme="@style/AppTheme"
             android:windowSoftInputMode="adjustResize|stateUnchanged">
-            android:parentActivityName=".MainMessages"
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
-                android:value=".MainMessages" />
+                android:value=".ReceivedMessages" />
         </activity>
 
         <activity
             android:name=".SendMessages"
+            android:parentActivityName=".ReceivedMessages"
             android:theme="@style/AppTheme">
-            android:parentActivityName=".MainMessages"
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
-                android:value=".MainMessages" />
+                android:value=".ReceivedMessages" />
         </activity>
 
         <receiver android:name=".SmsBroadcastReceiver" android:exported="true" >

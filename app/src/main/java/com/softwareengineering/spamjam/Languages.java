@@ -1,5 +1,6 @@
 package com.softwareengineering.spamjam;
 
+import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
@@ -13,7 +14,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 
 public class Languages extends AppCompatActivity {
-
     SQLiteDatabase mydatabase;
 
     @Override
@@ -36,7 +36,7 @@ public class Languages extends AppCompatActivity {
      * Hindi and English are marked by default
      */
     void load_languages(){
-        ArrayList<String> languages = Language_Filter.languages;
+        ArrayList<String> languages = LanguageFilter.languages;
         HashMap<String, Integer> languages_selected = new HashMap<>();
 
         LinearLayout parentLayout = (LinearLayout) findViewById(R.id.linear_layout_with_language_choice);
@@ -68,15 +68,25 @@ public class Languages extends AppCompatActivity {
     @Override
     protected void onDestroy() {
 
+        int number_of_changes = 0;
+
         LinearLayout linearLayout = (LinearLayout) findViewById(R.id.linear_layout_with_language_choice);
         for(int i = 0; i <  linearLayout.getChildCount(); i++) {
             CheckBox checkBox = (CheckBox) linearLayout.getChildAt(i);
             String lang = (String) checkBox.getText();
             if(checkBox.isChecked()) {
                 mydatabase.execSQL("INSERT INTO languages VALUES (\"" + lang + "\");");
+                number_of_changes++;
             } else {
                 mydatabase.execSQL("DELETE FROM languages WHERE Language=\"" + lang + "\";");
+                number_of_changes++;
             }
+        }
+
+        if (number_of_changes != 0) {
+            SharedPreferences.Editor editor = getSharedPreferences("SpamJAM", MODE_PRIVATE).edit();
+            editor.putInt("classify", 12);
+            editor.apply();
         }
 
         super.onDestroy();

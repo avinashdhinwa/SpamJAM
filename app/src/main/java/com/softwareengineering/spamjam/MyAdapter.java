@@ -47,11 +47,6 @@ public class MyAdapter extends ArrayAdapter {
         if (view == null) {
             view = inflater.inflate(R.layout.activity_main_messages_listview_row, null);
         }
-//        if (position % 2 == 1) {
-//            view.setBackgroundColor(Color.WHITE);
-//        } else {
-//            view.setBackgroundColor(Color.rgb(154	,255,	154));
-//        }
 
         TextView sender = (TextView) view.findViewById(R.id.sender);
         TextView body_summary = (TextView) view.findViewById(R.id.body_summary);

@@ -5,7 +5,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
-public class Language_Filter {
+public class LanguageFilter {
 
     static String ENGLISH = "English";
     static String HINDI = "Hindi";
@@ -23,7 +23,7 @@ public class Language_Filter {
 
     static HashMap<String , Integer> map = new HashMap<>();
 
-    public Language_Filter() {
+    public LanguageFilter() {
 
     }
 
@@ -42,7 +42,7 @@ public class Language_Filter {
         map.put("Punjabi",0);
         map.put("Malayalam", 0);
         // go through all message character
-        for(int i = 0; i<Msg.length(); i++) {
+        for (int i = 0; i < Msg.length(); i++) {
 
             // if it is white space skip it otherwise add in corresponding language
             if ((int) Msg.charAt(i) == 32) {

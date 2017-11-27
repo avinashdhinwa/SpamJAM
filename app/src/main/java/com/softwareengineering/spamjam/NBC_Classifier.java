@@ -21,8 +21,8 @@ public class NBC_Classifier{
 
     Context context;
     int size = 2;
-    Hashtable<String,Double> spamWordsArray[] = new Hashtable[size];
-    Hashtable<String,Double> hamWordsArray[] = new Hashtable[size];
+    Hashtable<String, Double> spamWordsArray[] = new Hashtable[size];
+    Hashtable<String, Double> hamWordsArray[] = new Hashtable[size];
     int spamCountArray[] = new int[size];
     int hamCountArray[] = new int[size];
     int english = 0;
@@ -33,10 +33,10 @@ public class NBC_Classifier{
      *
      * @param ctx context of main activity
      */
-    public  NBC_Classifier(Context ctx) {
+    public NBC_Classifier(Context ctx) {
         context = ctx;
         // initialize all hash table
-        for(int i = 0; i< size; i++){
+        for (int i = 0; i < size; i++) {
             spamCountArray[i] = 0;
             hamCountArray[i] = 0;
             spamWordsArray[i] = new Hashtable<String, Double>();
@@ -102,7 +102,8 @@ public class NBC_Classifier{
         }
     }
 
-    /**this method is to read the data set from file
+    /**
+     * this method is to read the data set from file
      *
      * @param ctx context of main activity
      */
@@ -154,17 +155,18 @@ public class NBC_Classifier{
     }
 
 
-    /** this method it to train the NBC model
+    /**
+     * this method it to train the NBC model
      *
      * @param Spam marked spam set by user
-     * @param Ham marked ham set by user
+     * @param Ham  marked ham set by user
      * @throws IOException throws exception if file is not found
      */
-    public void fillTable(HashMap<Integer, String> Spam, HashMap<Integer, String> Ham)  throws IOException {
+    public void fillTable(HashMap<Integer, String> Spam, HashMap<Integer, String> Ham) throws IOException {
 
         String message; // message string
         // clear previous list
-        for(int i = 0; i < size; i++){
+        for (int i = 0; i < size; i++) {
             spamWordsArray[i].clear();
             hamWordsArray[i].clear();
             spamCountArray[i] = 0;
@@ -178,7 +180,7 @@ public class NBC_Classifier{
         Set<Integer> keys = Ham.keySet(); // hamkey set
         for (int key : keys){
             message = Ham.get(key).toLowerCase();
-            String lang = Language_Filter.predictor(message);
+            String lang = LanguageFilter.predictor(message);
             // add in english table if language is english
             if(lang.equals("English")) {
                 message = MessageCleaning.newWordCleaning(message);//MessageCleaning.messageCleaning(message);
@@ -196,7 +198,7 @@ public class NBC_Classifier{
             }
 
             // add in hindi table if language is hindi
-            else if(lang.equals("Hindi")){
+            else if (lang.equals("Hindi")) {
                 String[] msgWords = MessageCleaning.HindiMessageCleaning(message.toLowerCase()).split("\\s+");//message.split("[\\s|;|:|,|)|(|{|}|[|]|/| |-|\n]+");
 
                 hamCountArray[hindi] += msgWords.length;
@@ -215,7 +217,7 @@ public class NBC_Classifier{
         keys = Spam.keySet();
         for (int key : keys){
             message = Spam.get(key).toLowerCase();
-            String lang = Language_Filter.predictor(message);
+            String lang = LanguageFilter.predictor(message);
 
             if(lang.equals("English")) {
                 message = MessageCleaning.newWordCleaning(message);//MessageCleaning.messageCleaning(message);
@@ -230,7 +232,7 @@ public class NBC_Classifier{
                         spamWordsArray[english].put(s, spamWordsArray[english].get(s) + 1);
                     }
                 }
-            } else if(lang.equals("Hindi")){
+            } else if (lang.equals("Hindi")) {
                 String[] msgWords = MessageCleaning.HindiMessageCleaning(message.toLowerCase()).split("\\s+");//message.split("[\\s|;|:|,|)|(|{|}|[|]|/| |-|\n]+");
 
                 spamCountArray[hindi] += msgWords.length;
@@ -245,7 +247,7 @@ public class NBC_Classifier{
             }
         }
 
-        for(int i = 0; i < size; i++) {
+        for (int i = 0; i < size; i++) {
             Set<String> keySet = hamWordsArray[i].keySet();
             for (String s : keySet) {
                 hamWordsArray[i].put(s, hamWordsArray[i].get(s) / hamCountArray[i]);
@@ -258,12 +260,13 @@ public class NBC_Classifier{
         }
 
 
-        Log.e("printer","spam count = "+spamCountArray[english]);
-        Log.e("printer","ham Count = "+hamCountArray[english]);
+        Log.e("printer", "spam count = " + spamCountArray[english]);
+        Log.e("printer", "ham Count = " + hamCountArray[english]);
 
     }
 
-    /** this method will save the learned model of NBC classifier in txt file
+    /**
+     * this method will save the learned model of NBC classifier in txt file
      *
      * @throws IOException it will throws exception if file is not created
      */
@@ -324,28 +327,29 @@ public class NBC_Classifier{
 
     }
 
-    /** it will classifiy  given message in spam/ham
+    /**
+     * it will classifiy  given message in spam/ham
      *
      * @param message given message which we want to classify
      * @return return 1 of message is ham other wise 0
      */
     public int classify(String message) {
         message = message.toLowerCase(); // change message in lower case
-        String lang = Language_Filter.predictor(message); // predict the language of message
+        String lang = LanguageFilter.predictor(message); // predict the language of message
 
         // classifiy using english model if language is english
-        if(lang.equals("English")) {
+        if (lang.equals("English")) {
             // clean the message
             message = MessageCleaning.newWordCleaning(message);//MessageCleaning.messageCleaning(message);
             String[] msgWords = message.split("\\s+"); // split bases on white spaces
             double hamProb = hamCountArray[english] * 1.0 / (hamCountArray[english] + spamCountArray[english]); // ham probability
             double spamProb = spamCountArray[english] * 1.0 / (spamCountArray[english] + hamCountArray[english]); // spam probability
-            double spValue,hmValue;
+            double spValue, hmValue;
             // go through all words of message
             for (String s : msgWords) {
                 // get probability if exist in table
                 if (spamWordsArray[english].containsKey(s)) {
-                    spValue= spamWordsArray[english].get(s);
+                    spValue = spamWordsArray[english].get(s);
                 } else {
                     // take constant probability if not exist
                     spValue = (1.0 / (spamCountArray[english]+hamCountArray[english]));
@@ -356,11 +360,11 @@ public class NBC_Classifier{
                     hmValue = hamWordsArray[english].get(s);
                 } else {
                     // take constant probability if not exist
-                    hmValue = (1.0 /(spamCountArray[english] + hamCountArray[english]));
+                    hmValue = (1.0 / (spamCountArray[english] + hamCountArray[english]));
                 }
                 // multiply with ham and spam probability it's corresponding probabilities
-                hamProb *= hmValue/(hmValue+spValue);
-                spamProb *= spValue/(spValue+hmValue);
+                hamProb *= hmValue / (hmValue + spValue);
+                spamProb *= spValue / (spValue + hmValue);
 
             }
             // return ham if ham probability is more
@@ -383,7 +387,7 @@ public class NBC_Classifier{
                     v1 = spamWordsArray[hindi].get(s);
                 } else {
                     // take constant probability if not exist
-                    v1  = (1.0 / spamCountArray[hindi]);
+                    v1 = (1.0 / spamCountArray[hindi]);
                 }
 
                 // get probability if exist in table
@@ -394,16 +398,16 @@ public class NBC_Classifier{
                     v2 = (0.01 / hamCountArray[hindi]);
                 }
                 // multiply with ham and spam probability it's corresponding probabilities
-                hamProb *=  v2/(v1+v2);
-                spamProb *= v1/(v1+v2);
+                hamProb *= v2 / (v1 + v2);
+                spamProb *= v1 / (v1 + v2);
 
             }
             // return ham if ham probability is more
             if (hamProb > spamProb) {
-                Log.e("filter","ham "+hamProb+" "+spamProb+" "+message);
+                Log.e("filter", "ham " + hamProb + " " + spamProb + " " + message);
                 return Message.NOT_SPAM;
             } else {
-                Log.e("filter","spam "+hamProb+" "+spamProb+" "+message);
+                Log.e("filter", "spam " + hamProb + " " + spamProb + " " + message);
                 return Message.SPAM;
             }
         }
@@ -413,7 +417,8 @@ public class NBC_Classifier{
 
     }
 
-    /** to classify list of message
+    /**
+     * to classify list of message
      *
      * @param dataSet list of all messages which want to classify
      * @return return list of classified messages with ids

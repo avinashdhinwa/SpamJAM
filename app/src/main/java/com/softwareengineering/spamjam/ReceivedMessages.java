@@ -42,8 +42,11 @@ import java.util.List;
 import java.util.Scanner;
 import java.util.Set;
 
-public class MainMessages extends AppCompatActivity {
+public class ReceivedMessages extends AppCompatActivity {
 
+    static final int SWITCH_FROM_LANGUAGE = 1;
+    static final int SWITCH_FROM_BLACKLIST = 2;
+    static final int SWITCH_FROM_WHITELIST = 3;
     private static final int REQUEST_CODE_ASK_PERMISSIONS = 123;
     private static final int HARDCODE_AS_SPAM = 111;
     private static final int HARDCODE_AS_HAM = 112;
@@ -53,10 +56,8 @@ public class MainMessages extends AppCompatActivity {
     private static final int WHITELIST_CONTACT = 116;
     private static final int RETRAIN = 111;
     private static final int CLASSIFY_BY_ADDRESS_ONLY = 112;
-
     static int number_of_new_messages = 0;
     static int max_id = 0;
-
     static Classifier classifier;
     static HashMap<Integer, Message> id_to_messages = new HashMap<>();
     static HashMap<Integer, String> spam_messages_training = new HashMap<>();
@@ -76,15 +77,30 @@ public class MainMessages extends AppCompatActivity {
     private NavigationView navigationView;
     private DrawerLayout drawerLayout;
 
+    /*
     @Override
-    protected void onStart() {
-        super.onStart();
+    protected void onResume() {
+        super.onResume();
+        Log.d("activity", "Start");
         EventBus.getDefault().register(this);
+
+        SharedPreferences prefs = getSharedPreferences("SpamJAM", MODE_PRIVATE);
+        Log.e("changes", "shared-pref : " + prefs.getInt("classify", -1));
+
+        if(prefs.getInt("classify", -1) != -1){
+            Log.e("changes", "detected");
+            classify(CLASSIFY_BY_ADDRESS_ONLY);
+            prefs.edit().putInt("classify", -1).apply();
+            Log.e("changes", "classifying all " + id_to_messages.size() + " messages");
+        }
+
     }
+*/
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        Log.d("activity", "Create");
         setContentView(R.layout.activity_main_messages);
 
         toolbar = (Toolbar) findViewById(R.id.toolbar);
@@ -95,7 +111,7 @@ public class MainMessages extends AppCompatActivity {
         handle_floating_button();
 
         while (ContextCompat.checkSelfPermission(getBaseContext(), "android.permission.READ_SMS") != PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(MainMessages.this, new String[]{"android.permission.READ_SMS"}, REQUEST_CODE_ASK_PERMISSIONS);
+            ActivityCompat.requestPermissions(ReceivedMessages.this, new String[]{"android.permission.READ_SMS"}, REQUEST_CODE_ASK_PERMISSIONS);
         }
 
         init();
@@ -161,7 +177,7 @@ public class MainMessages extends AppCompatActivity {
                     message = id_to_messages.get(id_list_non_spam.get(pos));
                 }
 
-                Intent i = new Intent(getApplicationContext(), Message_Display.class);
+                Intent i = new Intent(getApplicationContext(), MessageDisplay.class);
                 i.putExtra("key", message.body + "`" + message.date + "`" + message.address);
                 startActivity(i);
             }
@@ -175,6 +191,8 @@ public class MainMessages extends AppCompatActivity {
      * @param MODE Tells whether the machine learning model needs to be retrained or
      */
     private void classify(int MODE) {
+
+        Log.e("changes", "classifier called");
 
         Set<Integer> keys = id_to_messages.keySet();
 
@@ -201,6 +219,9 @@ public class MainMessages extends AppCompatActivity {
         Collections.sort(id_list_spam, Collections.<Integer>reverseOrder());
 
         fill_the_layout_with_messages();
+
+        Log.e("changes", "inbox size : " + id_list_non_spam.size());
+        Log.e("changes", "spam size : " + id_list_spam.size());
     }
 
     /**
@@ -254,51 +275,60 @@ public class MainMessages extends AppCompatActivity {
      */
     void readMessages() {
         String INBOX = "content://sms/inbox";
+        String SENT = "content://sms/sent";
+        String[] folders = new String[]{INBOX, SENT};
 
-        Cursor cursor = getContentResolver().query(Uri.parse(INBOX), null, null, null, null);
+        for (int folder_type = 0; folder_type < folders.length; folder_type++) {
+            Cursor cursor = getContentResolver().query(Uri.parse(folders[folder_type]), null, null, null, null);
+
+            if (cursor.moveToFirst()) { // must check the result to prevent exception
+
+                int BODY = cursor.getColumnIndex("body");
+                int ID = cursor.getColumnIndex("_id");
+                int PERSON = cursor.getColumnIndex("person");
+                int ADDRESS = cursor.getColumnIndex("address");
+                int DATE = cursor.getColumnIndex("date");
+
+                do {
+                    String body = cursor.getString(BODY);
+                    int id = cursor.getInt(ID);
+                    String person = cursor.getString(PERSON);
+                    String date = Message.millisToTime(cursor.getLong(DATE));
+                    String address = cursor.getString(ADDRESS);
+
+                    if (id > max_id) {
+                        max_id = id;
+                    }
+
+                    id_list.add(id);
+
+                    if (id_to_messages.containsKey(id)) {
+                        id_to_messages.get(id).set_message(body, person, address, date);
+                    } else {
+                        id_to_messages.put(id, new Message(id, body, person, address, date));
+                        id_to_messages.get(id).spam = classifier.classify(body, address);
+                    }
+                    switch (id_to_messages.get(id).spam) {
+                        case Message.NOT_SPAM:
+                            id_list_non_spam.add(id);
+                            break;
+                        case Message.SPAM:
+                            id_list_spam.add(id);
+                            break;
+                    }
+                    id_to_messages.get(id).setMessageType(folder_type);
+
+                } while (cursor.moveToNext());
+            } else {
+                Log.e("Error", "no messages");
+            }
+        }
+
+        Collections.sort(id_list_non_spam, Collections.<Integer>reverseOrder());
+        Collections.sort(id_list_spam, Collections.<Integer>reverseOrder());
 
         arrayAdapter = new MyAdapter(this, android.R.layout.simple_list_item_1, id_list_non_spam, id_to_messages);
         listView.setAdapter(arrayAdapter);
-
-        if (cursor.moveToFirst()) { // must check the result to prevent exception
-
-            int BODY = cursor.getColumnIndex("body");
-            int ID = cursor.getColumnIndex("_id");
-            int PERSON = cursor.getColumnIndex("person");
-            int ADDRESS = cursor.getColumnIndex("address");
-            int DATE = cursor.getColumnIndex("date");
-
-            do {
-
-                String body = cursor.getString(BODY);
-                int id = cursor.getInt(ID);
-                String person = cursor.getString(PERSON);
-                String date = Message.millisToTime(cursor.getLong(DATE));
-                String address = cursor.getString(ADDRESS);
-
-                if (id > max_id) {
-                    max_id = id;
-                }
-
-                id_list.add(id);
-
-                if (id_to_messages.containsKey(id)) {
-                    id_to_messages.get(id).set_message(body, person, address, date);
-                } else {
-                    id_to_messages.put(id, new Message(id, body, person, address, date));
-                    id_to_messages.get(id).spam = classifier.classify(body, address);
-                }
-                switch (id_to_messages.get(id).spam){
-                    case Message.NOT_SPAM: id_list_non_spam.add(id); break;
-                    case Message.SPAM: id_list_spam.add(id); break;
-                }
-
-                arrayAdapter.notifyDataSetChanged();
-
-            } while (cursor.moveToNext());
-        } else {
-            Log.e("Error", "no messages");
-        }
     }
 
     /**
@@ -411,16 +441,18 @@ public class MainMessages extends AppCompatActivity {
         switch(SHOWING_SPAM_OR_HAM){
             case Message.NOT_SPAM:{
                 arrayAdapter = new MyAdapter(this, android.R.layout.simple_list_item_1, id_list_non_spam, id_to_messages);
+                getSupportActionBar().setBackgroundDrawable(new ColorDrawable(Color.parseColor("#28539b")));
                 getSupportActionBar().setTitle("Inbox");
                 listView.setAdapter(arrayAdapter);
-                Log.e("filling layout", "Displaying NOT SPAM");
+                Log.d("changes", "Displaying NOT SPAM");
             }
             break;
             case Message.SPAM:{
                 arrayAdapter = new MyAdapter(this, android.R.layout.simple_list_item_1, id_list_spam, id_to_messages);
+                getSupportActionBar().setBackgroundDrawable(new ColorDrawable(Color.parseColor("#ff4242")));
                 getSupportActionBar().setTitle("Spam");
                 listView.setAdapter(arrayAdapter);
-                Log.e("filling layout", "Displaying SPAM");
+                Log.d("changes", "Displaying SPAM");
             }
             break;
         }
@@ -482,20 +514,14 @@ public class MainMessages extends AppCompatActivity {
             @Override
             public boolean onNavigationItemSelected(@NonNull MenuItem menuItem) {
 
-                if (menuItem.isChecked()) {
-                    menuItem.setChecked(false);
-                } else {
-                    menuItem.setChecked(true);
-                }
-
                 //Closing drawer on item click
                 drawerLayout.closeDrawers();
 
                 /**
                  * Navigation Drawer Elements
                  */
-                switch (menuItem.getItemId()){
-                    case R.id.TOOLBAR_LANGUAGES:{
+                switch (menuItem.getItemId()) {
+                    case R.id.TOOLBAR_LANGUAGES: {
                         Intent intent = new Intent(getApplicationContext(), Languages.class);
                         startActivity(intent);
                         return true;
@@ -515,31 +541,21 @@ public class MainMessages extends AppCompatActivity {
 
                     case R.id.TOOLBAR_NON_SPAM: {
                         SHOWING_SPAM_OR_HAM = Message.NOT_SPAM;
-                        invalidateOptionsMenu();
                         fill_the_layout_with_messages();
-                        getSupportActionBar().setTitle("Inbox");  // provide compatibility to all the versions
-                        getSupportActionBar().setBackgroundDrawable(new ColorDrawable(Color.parseColor("#28539b")));
                         return true;
                     }
 
                     case R.id.TOOLBAR_SPAM: {
                         SHOWING_SPAM_OR_HAM = Message.SPAM;
-                        invalidateOptionsMenu();
                         fill_the_layout_with_messages();
-                        getSupportActionBar().setTitle("Spam");  // provide compatibility to all the versions
-                        getSupportActionBar().setBackgroundDrawable(new ColorDrawable(Color.parseColor("#ff4242")));
                         return true;
                     }
                     default:
                         Toast.makeText(getApplicationContext(), "Somethings Wrong", Toast.LENGTH_SHORT).show();
                         return true;
-
                 }
-
-
             }
         });
-
 
         drawerLayout = (DrawerLayout) findViewById(R.id.drawer);
         actionBarDrawerToggle = new ActionBarDrawerToggle(this, drawerLayout, toolbar, R.string.open, R.string.close) {

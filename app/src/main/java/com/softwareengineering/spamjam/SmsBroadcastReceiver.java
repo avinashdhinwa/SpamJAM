@@ -17,7 +17,7 @@ public class SmsBroadcastReceiver extends BroadcastReceiver {
     }
 
     /**
-     * Sends new message to the 'MainMessages' activity
+     * Sends new message to the 'ReceivedMessages' activity
      *
      * @param context
      * @param intent
@@ -40,11 +40,12 @@ public class SmsBroadcastReceiver extends BroadcastReceiver {
                     String address = currentMessage.getDisplayOriginatingAddress();
                     String person = address;
                     String body = currentMessage.getDisplayMessageBody();
-                    int id = MainMessages.max_id + 1;
-                    MainMessages.max_id++;
+                    int id = ReceivedMessages.max_id + 1;
+                    ReceivedMessages.max_id++;
                     String date = Message.millisToTime(currentMessage.getTimestampMillis());
 
                     Message message = new Message(id, body, person, address, date);
+                    message.message_type = Message.INBOX;
                     Log.d("broadcast", "Recieved Message : " + message.to_string_for_debug());
 
                     EventBus.getDefault().post(message);

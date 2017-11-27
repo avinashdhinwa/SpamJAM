@@ -61,8 +61,8 @@ public class MessageCleaning {
     }
 
     // method to clean the given word
+
     /**
-     *
      * @param input message string
      * @return cleaned message
      */
